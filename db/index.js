@@ -3,15 +3,18 @@
 //  Uses better-sqlite3 (synchronous SQLite3)
 // =============================================
 
-const Database = require('better-sqlite3');
-const crypto = require('crypto');
-const path = require('path');
+import Database from 'better-sqlite3';
+import { randomUUID } from 'crypto';
+import { dirname, join } from 'path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 // -------------------------------------------
 //  Configuration
 // -------------------------------------------
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'netri.db');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DB_PATH = process.env.DB_PATH || join(__dirname, '..', 'netri.db');
 
 // Valid alert statuses — single source of truth
 const ALERT_STATUSES = Object.freeze({
@@ -103,7 +106,7 @@ function getDb() {
  * @returns {Object} The created alert record.
  */
 function insertAlert(data) {
-  const alertId = crypto.randomUUID();
+  const alertId = randomUUID();
   const createdAt = new Date().toISOString();
 
   const stmt = getDb().prepare(`
@@ -255,7 +258,7 @@ function transitionAlertStatus(alertId, newStatus) {
 //  Exports
 // -------------------------------------------
 
-module.exports = {
+export default {
   // Initialization
   initializeDatabase,
   getDb,
