@@ -190,13 +190,15 @@ function renderAnalytics() {
 }
 
 /* =========================================================
-   10. ERSS
+   10. ERSS (panel removed from UI — function now a no-op guard
+   so it doesn't throw if called; safe to delete calls later)
    ========================================================= */
 function renderErss() {
-  var alert = getSelectedCase();
   var panel = document.getElementById("erss-panel");
   var status = document.getElementById("erss-status");
+  if (!panel || !status) return;
 
+  var alert = getSelectedCase();
   if (alert && alert.status === "Escalated") {
     panel.classList.add("active");
     status.textContent = "ACTIVE - CASE ESCALATED";
@@ -205,7 +207,37 @@ function renderErss() {
     status.textContent = "STANDBY";
   }
 }
+/* =========================================================
+   11. SIDEBAR NAVIGATION (view switching only, no backend)
+   ========================================================= */
+function switchView(viewName) {
+  document.querySelectorAll(".view").forEach(function (view) {
+    view.classList.remove("active");
+  });
+  document.querySelectorAll(".nav-item").forEach(function (item) {
+    item.classList.remove("active");
+  });
 
+  var viewEl = document.getElementById("view-" + viewName);
+  var navEl = document.querySelector('.nav-item[data-view="' + viewName + '"]');
+  var viewTag = document.getElementById("view-tag");
+
+  if (viewEl) viewEl.classList.add("active");
+  if (navEl) navEl.classList.add("active");
+  if (viewTag && navEl) viewTag.textContent = navEl.textContent.trim();
+
+  if (viewName === "command-center") {
+    setTimeout(function () {
+      map.invalidateSize();
+    }, 0);
+  }
+}
+
+document.querySelectorAll(".nav-item").forEach(function (item) {
+  item.addEventListener("click", function () {
+    switchView(item.getAttribute("data-view"));
+  });
+});
 /* =========================================================
    INIT
    ========================================================= */
@@ -215,3 +247,4 @@ renderSelectedCase();
 renderHistory();
 renderAnalytics();
 renderErss();
+switchView("command-center");
