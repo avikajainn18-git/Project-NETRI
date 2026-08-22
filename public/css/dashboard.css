@@ -372,3 +372,125 @@ html, body {
 .status-Verified { background: #4a3a10; color: #e0b830; }
 .status-Notified { background: #163a1d; color: #8fd89c; }
 .status-Pending { background: #4a3a10; color: #e0b830; }
+/* =========================================================
+   VIEW SWITCHING
+   ========================================================= */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* =========================================================
+   EXTRA STATUS CHIPS (Evidence Vault / Trusted Contacts)
+   ========================================================= */
+.status-Collected { background: #163a1d; color: #8fd89c; }
+.status-Archived { background: #2c2634; color: #b9aec2; }
+.status-Verified { background: #4a3a10; color: #e0b830; }
+.status-Notified { background: #163a1d; color: #8fd89c; }
+.status-Pending { background: #4a3a10; color: #e0b830; }
+
+/* =========================================================
+   INCIDENT DETAIL GRID (inside Selected Case)
+   ========================================================= */
+.incident-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.incident-field {
+  font-size: 1.05rem;
+  color: #e8e0d4;
+}
+
+.incident-field .field-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #a89ba8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+/* =========================================================
+   RECORDING SECTION
+   ========================================================= */
+.recording-section {
+  border-top: 1px solid #2c2230;
+  padding-top: 14px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.recording-section h3,
+.evidence-section h3 {
+  font-size: 0.9rem;
+  color: #c9a227;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+#recording-status {
+  font-size: 0.95rem;
+  color: #a89ba8;
+  margin-bottom: 10px;
+}
+
+.play-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #241b28;
+  color: #c9a227;
+  border: 1px solid #c9a227;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.play-btn:hover {
+  background: #2c2132;
+}
+
+.play-btn:disabled {
+  border-color: #3a3340;
+  color: #6c6270;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   EVIDENCE SECTION
+   ========================================================= */
+.evidence-section {
+  border-top: 1px solid #2c2230;
+  padding-top: 14px;
+  margin-bottom: 14px;
+}
+
+#evidence-list {
+  list-style: none;
+}
+
+#evidence-list li {
+  font-size: 0.98rem;
+  color: #e8e0d4;
+  padding: 4px 0;
+}
+
+#evidence-list li::before {
+  content: "\2713";
+  color: #4caf50;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+#evidence-list li.pending::before {
+  content: "\2717";
+  color: #e5484d;
+}

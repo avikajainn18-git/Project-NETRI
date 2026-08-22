@@ -66,13 +66,25 @@
 
         <div class="detail-container">
           <div class="selected-case" id="selected-case">
-            <h2>Selected Case</h2>
+            <h2 id="selected-case-title">Selected Case</h2>
             <div id="selected-case-body"></div>
+
+            <div class="recording-section">
+              <h3>Voice Recording</h3>
+              <div id="recording-status">No recording</div>
+              <button id="play-recording-btn" class="play-btn">&#9658; Play Recording</button>
+            </div>
+
+            <div class="evidence-section">
+              <h3>Evidence</h3>
+              <ul id="evidence-list"></ul>
+            </div>
+
             <button id="resolve-btn" class="resolve-btn">Resolve</button>
           </div>
 
           <div class="case-history">
-            <h2>Case History</h2>
+            <h2>Incident History</h2>
             <ul id="history-timeline"></ul>
           </div>
         </div>
