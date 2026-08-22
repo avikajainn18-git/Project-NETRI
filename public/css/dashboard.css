@@ -1,0 +1,253 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  background: #0d1117;
+  color: #f0f0f0;
+  padding: 16px;
+}
+
+/* HEADER */
+.header {
+  background: #1a2332;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 8px solid #d32f2f;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+}
+
+/* ANALYTICS */
+.analytics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tile {
+  background: #1a2332;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  border: 2px solid #2a3648;
+}
+
+.tile-value {
+  font-size: 3.2rem;
+  font-weight: bold;
+}
+
+.tile-label {
+  font-size: 1.2rem;
+  color: #a0aab8;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#tile-active .tile-value { color: #ffb300; }
+#tile-resolved .tile-value { color: #4caf50; }
+#tile-escalated .tile-value { color: #ff5252; }
+#tile-response .tile-value { color: #64b5f6; }
+
+/* MAIN PANEL */
+.main-panel {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.map-container {
+  background: #1a2332;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #2a3648;
+  min-height: 420px;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+}
+
+.detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.selected-case, .case-history {
+  background: #1a2332;
+  border-radius: 8px;
+  padding: 20px;
+  border: 2px solid #2a3648;
+  flex: 1;
+}
+
+.selected-case h2, .case-history h2, .case-list-section h2, .erss-panel h2 {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  color: #cfd8e3;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#selected-case-body p {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+#selected-case-body strong {
+  color: #a0aab8;
+}
+
+.resolve-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.resolve-btn:hover {
+  background: #388e3c;
+}
+
+.resolve-btn:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+/* HISTORY TIMELINE */
+#history-timeline {
+  list-style: none;
+}
+
+#history-timeline li {
+  padding: 10px 0 10px 20px;
+  border-left: 3px solid #64b5f6;
+  margin-left: 6px;
+  font-size: 1.1rem;
+  position: relative;
+}
+
+#history-timeline li::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
+  background: #64b5f6;
+  border-radius: 50%;
+}
+
+#history-timeline li span {
+  display: block;
+  color: #a0aab8;
+  font-size: 0.95rem;
+}
+
+/* CASE LIST */
+.case-list-section {
+  background: #1a2332;
+  border-radius: 8px;
+  padding: 20px;
+  border: 2px solid #2a3648;
+  margin-bottom: 16px;
+}
+
+.case-list {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.case-list th {
+  text-align: left;
+  font-size: 1.1rem;
+  color: #a0aab8;
+  padding: 10px;
+  border-bottom: 2px solid #2a3648;
+}
+
+.case-list td {
+  padding: 14px 10px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #2a3648;
+  cursor: pointer;
+}
+
+.case-list tr:hover td {
+  background: #202b3d;
+}
+
+.case-list tr.selected-row td {
+  background: #26344a;
+  border-left: 4px solid #64b5f6;
+}
+
+/* STATUS CHIPS */
+.status-chip {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.status-Active { background: #7a4b00; color: #ffd580; }
+.status-Escalated { background: #7a1f1f; color: #ff9e9e; }
+.status-Resolved { background: #1f4d24; color: #9be89f; }
+
+/* ERSS PANEL */
+.erss-panel {
+  background: #1a2332;
+  border-radius: 8px;
+  padding: 24px;
+  border: 2px solid #2a3648;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.erss-status {
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 20px;
+  border-radius: 8px;
+  letter-spacing: 2px;
+  background: #2a3648;
+  color: #6b7686;
+}
+
+.erss-panel.active {
+  border-color: #ff1744;
+  box-shadow: 0 0 24px rgba(255, 23, 68, 0.5);
+}
+
+.erss-panel.active .erss-status {
+  background: #ff1744;
+  color: white;
+}
+
+/* RESPONSIVE FALLBACK */
+@media (max-width: 900px) {
+  .analytics { grid-template-columns: repeat(2, 1fr); }
+  .main-panel { grid-template-columns: 1fr; }
+}

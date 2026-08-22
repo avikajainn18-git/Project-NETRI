@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>112 Safety Response Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>112 Safety Response Dashboard</h1>
+</header>
+
+<section class="analytics">
+  <div class="tile" id="tile-active">
+    <div class="tile-value" id="stat-active">0</div>
+    <div class="tile-label">Active</div>
+  </div>
+  <div class="tile" id="tile-resolved">
+    <div class="tile-value" id="stat-resolved">0</div>
+    <div class="tile-label">Resolved</div>
+  </div>
+  <div class="tile" id="tile-escalated">
+    <div class="tile-value" id="stat-escalated">0</div>
+    <div class="tile-label">Escalated</div>
+  </div>
+  <div class="tile" id="tile-response">
+    <div class="tile-value" id="stat-response">0m</div>
+    <div class="tile-label">Avg Response</div>
+  </div>
+</section>
+
+<section class="main-panel">
+  <div class="map-container">
+    <div id="map"></div>
+  </div>
+
+  <div class="detail-container">
+    <div class="selected-case" id="selected-case">
+      <h2>Selected Case</h2>
+      <div id="selected-case-body"></div>
+      <button id="resolve-btn" class="resolve-btn">Resolve</button>
+    </div>
+
+    <div class="case-history">
+      <h2>Case History</h2>
+      <ul id="history-timeline"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="case-list-section">
+  <h2>Case / Alert List</h2>
+  <table class="case-list">
+    <thead>
+      <tr>
+        <th>Case ID</th>
+        <th>Status</th>
+        <th>Location</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="case-list-body"></tbody>
+  </table>
+</section>
+
+<section class="erss-panel" id="erss-panel">
+  <h2>112 ERSS</h2>
+  <div class="erss-status" id="erss-status">STANDBY</div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
