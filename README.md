@@ -1,7 +1,6 @@
-Project-NETRI
+Project-N.E.T.R.I.
 
-A smart compact mirror that sends your location & distress alert with a triple-tap—no phone unlock needed. Works offline.
-
+N.E.T.R.I. is a  discreet personal-safety system integrated into an everyday compact mirror, designed to let a woman rapidly trigger a distress alert during an emergency without needing to navigate a conventional safety application.
 ---
 
 ## The Problem
@@ -20,11 +19,12 @@ No internet. No app.
 
 ## Key Features
 - **Triple-tap activation**     —   instant, hands-free
-- **Offline works**             —   GSM/SMS only, no data needed
+- **Offline works**             —   Operates on GSM/SIM, in case of No Internet.
 - **Multiple modes**            —   distress alert, silent recording, voice activation
 - **Intelligent filtering**     —   knows real emergency from bag bump
 - **Already-carry form factor** —   compact mirror is unsuspicious
 - **Real-time dispatch**        —   responders see live location + details
+- **Uses Proven Technologies** — Reduced chances of failures in emergency situations.
 
 ---
 
@@ -35,8 +35,8 @@ No internet. No app.
 
 ## Tech Stack
 
-**Phase 1 (This Weekend) — Prototype**
-- Device    :  (HTML/CSS/JS + Geolocation API)
+**Phase 1 (Interal SIH MVP) — Prototype**
+- Device  Simulator  :  (HTML/CSS/JS + Geo-location API)
 - Backend   :  Node.js + Express, Socket.io, SQLite
 - Dashboard :  HTML/CSS/JS, Leaflet + OpenStreetMap
 - Transport :  HTTP POST over WiFi
@@ -51,6 +51,7 @@ No internet. No app.
 - Integration   :    112 ERSS, real-time WebSockets, push notifications
 
 ---
+
 
 ## Competitive Edge
 
