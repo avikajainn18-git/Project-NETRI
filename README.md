@@ -18,7 +18,7 @@ Compact mirrors are already in many women's bags—and nobody questions her hold
 
 Tap your compact mirror **3 times** and it silently alerts trusted contacts and responders with your GPS location.
 
-The proposed production system uses **GSM/SMS-based communication**, allowing alerts to be transmitted where cellular coverage is available even without an internet connection.
+The proposed production system uses **GSM/SMS-based communication**, allowing alerts to be transmitted where cellular coverage is available when there is no internet connection.
 
 ---
 
@@ -30,7 +30,7 @@ The proposed production system uses **GSM/SMS-based communication**, allowing al
 * **Intelligent filtering** — Helps distinguish intentional emergency triggers from accidental activation
 * **Everyday form factor** — Safety functionality integrated into a familiar compact mirror
 * **Real-time response** — Responders can view location and incident details through the dashboard
-* **Proven technologies** — Built around established hardware and software technologies
+* **Proven technologies** — Built around established hardware and software technologies reducing chances of failing
 
 ---
 
@@ -58,7 +58,7 @@ The proposed production system uses **GSM/SMS-based communication**, allowing al
 
 ### Phase 1 — Internal SIH MVP / Prototype
 
-* **Device Simulator:** HTML, CSS, JavaScript + Geolocation API
+* **Device Simulator:** HTML, CSS, JavaScript + Geo-location API
 * **Backend:** Node.js + Express, Socket.io, SQLite
 * **Dashboard:** HTML, CSS, JavaScript, Leaflet + OpenStreetMap
 * **Transport:** HTTP POST over Wi-Fi
@@ -77,11 +77,11 @@ The proposed production system uses **GSM/SMS-based communication**, allowing al
 
 ## System Architecture
 
-NETRI follows a layered architecture connecting the physical safety device to the emergency response system.
+N.E.T.R.I. follows a layered architecture connecting the physical safety device to the emergency response system.
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    NETRI COMPACT                            │
+│                    N.E.T.R.I. COMPACT                       │
 │                                                             │
 │  Triple-Tap / Voice Trigger                                 │
 │             ↓                                               │
@@ -121,8 +121,8 @@ NETRI follows a layered architecture connecting the physical safety device to th
 │                  EMERGENCY RESPONSE                         │
 │                                                             │
 │  Operator Dashboard    Emergency Contacts    112 / ERSS     │
-│          │                    │                  │           │
-│          └────────────────────┴──────────────────┘           │
+│          │                    │                  │          │
+│          └────────────────────┴──────────────────┘          │
 │                           ↓                                 │
 │              Acknowledge → Escalate → Resolve               │
 └─────────────────────────────────────────────────────────────┘
@@ -130,7 +130,7 @@ NETRI follows a layered architecture connecting the physical safety device to th
 
 ### Architecture Flow
 
-1. **Trigger** — The user activates NETRI through a predefined gesture or trigger.
+1. **Trigger** — The user activates N.E.T.R.I. through a predefined gesture or trigger.
 2. **Validation** — The system processes the trigger and applies false-alarm protection.
 3. **Communication** — The alert is transmitted with device identity and location information.
 4. **Backend Processing** — The backend receives, validates, stores, and processes the incident.
@@ -145,7 +145,7 @@ NETRI follows a layered architecture connecting the physical safety device to th
 The current SIH MVP represents the physical device through a software simulator and demonstrates the complete emergency-response workflow.
 
 ```text
-Virtual NETRI Device
+Virtual N.E.T.R.I. Device Simulation
         ↓
      Backend
         ↓
@@ -163,7 +163,7 @@ The MVP focuses on validating the core software pipeline before physical hardwar
 
 ## Competitive Edge
 
-| Factor       | NETRI                         | Conventional Apps / Devices          |
+| Factor       | N.E.T.R.I.                    | Conventional Apps / Devices          |
 | ------------ | ----------------------------- | ------------------------------------ |
 | Activation   | Triple-tap                    | Phone interaction / dedicated button |
 | Connectivity | GSM/SMS fallback              | Typically internet/app dependent     |
