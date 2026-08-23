@@ -54,7 +54,7 @@ No internet. No app.
 
 ## Competitive Edge
 
-|          Factor           |          SafeCompact           |    Competitors (Apps)     |
+|          Factor           |          Our Solution          |    Competitors (Apps)     |
 |---------------------------|--------------------------------|---------------------------|
 | Activation                | Triple-tap (instant)           | Unlock phone + app (3–5 sec) |
 | Offline                   | ✓ Works on GSM/SMS             | ✗ Needs internet          |
