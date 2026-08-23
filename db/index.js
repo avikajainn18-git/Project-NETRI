@@ -87,6 +87,29 @@ function initializeDatabase() {
     );
   `);
 
+  // Create the incident_events table (chronological timeline per alert)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS incident_events (
+      event_id      TEXT PRIMARY KEY,
+      alert_id      TEXT NOT NULL,
+      event_type    TEXT NOT NULL,
+      description   TEXT NOT NULL,
+      metadata      TEXT,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (alert_id) REFERENCES alerts(alert_id)
+    );
+  `);
+
+  // Index on alert_id for fast timeline lookups
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_events_alert ON incident_events(alert_id);
+  `);
+
+  // Index on created_at for chronological ordering
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_events_time ON incident_events(alert_id, created_at);
+  `);
+
   console.log(`[Database] Initialized at ${DB_PATH}`);
   return db;
 }
@@ -267,6 +290,67 @@ function transitionAlertStatus(alertId, newStatus) {
 }
 
 // -------------------------------------------
+//  Incident Event (Timeline) Operations
+// -------------------------------------------
+
+/**
+ * Valid event types for the incident timeline.
+ */
+const EVENT_TYPES = Object.freeze({
+  ALERT_CREATED: 'ALERT_CREATED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  LOCATION_UPDATED: 'LOCATION_UPDATED',
+  DEVICE_HEARTBEAT: 'DEVICE_HEARTBEAT',
+  NOTE_ADDED: 'NOTE_ADDED',
+});
+
+/**
+ * Insert a timeline event for an alert.
+ * @param {string} alertId - The alert this event belongs to.
+ * @param {string} eventType - One of EVENT_TYPES values.
+ * @param {string} description - Human-readable description.
+ * @param {Object} [metadata] - Optional JSON-serializable extra data.
+ * @returns {Object} The created event record.
+ */
+function insertIncidentEvent(alertId, eventType, description, metadata = null) {
+  const eventId = randomUUID();
+  const createdAt = new Date().toISOString();
+
+  getDb().prepare(`
+    INSERT INTO incident_events (event_id, alert_id, event_type, description, metadata, created_at)
+    VALUES (@eventId, @alertId, @eventType, @description, @metadata, @createdAt)
+  `).run({
+    eventId,
+    alertId,
+    eventType,
+    description,
+    metadata: metadata ? JSON.stringify(metadata) : null,
+    createdAt,
+  });
+
+  return getDb()
+    .prepare('SELECT * FROM incident_events WHERE event_id = ?')
+    .get(eventId);
+}
+
+/**
+ * Get all timeline events for an alert, ordered chronologically.
+ * @param {string} alertId
+ * @param {Object} [options]
+ * @param {number} [options.limit] - Max results (default 100).
+ * @param {number} [options.offset] - Pagination offset.
+ * @returns {Object[]} Array of event records.
+ */
+function getIncidentEvents(alertId, options = {}) {
+  const limit = options.limit || 100;
+  const offset = options.offset || 0;
+
+  return getDb()
+    .prepare('SELECT * FROM incident_events WHERE alert_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?')
+    .all(alertId, limit, offset);
+}
+
+// -------------------------------------------
 //  Device CRUD Operations
 // -------------------------------------------
 
@@ -414,6 +498,7 @@ module.exports = {
   // Constants
   ALERT_STATUSES,
   VALID_STATUSES,
+  EVENT_TYPES,
 
   // Alert operations
   insertAlert,
@@ -421,6 +506,10 @@ module.exports = {
   getAlerts,
   updateAlert,
   transitionAlertStatus,
+
+  // Incident event (timeline) operations
+  insertIncidentEvent,
+  getIncidentEvents,
 
   // Device operations
   getDeviceById,

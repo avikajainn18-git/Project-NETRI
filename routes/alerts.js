@@ -9,7 +9,10 @@ const {
   getAlertById,
   getAlerts,
   transitionAlertStatus,
+  insertIncidentEvent,
+  getIncidentEvents,
   ALERT_STATUSES,
+  EVENT_TYPES,
 } = require('../db');
 const {
   emitAlertCreated,
@@ -80,6 +83,7 @@ const VALID_TRANSITIONS = {
   [ALERT_STATUSES.ACTIVE]: [
     ALERT_STATUSES.ACKNOWLEDGED,
     ALERT_STATUSES.ESCALATED,
+    ALERT_STATUSES.RESOLVED,
     ALERT_STATUSES.CANCELLED,
   ],
   [ALERT_STATUSES.ACKNOWLEDGED]: [
@@ -127,6 +131,14 @@ router.post('/', (req, res) => {
       batteryLevel: req.body.batteryLevel ?? null,
       signalStatus: req.body.signalStatus || null,
     });
+
+    // Log timeline event
+    insertIncidentEvent(
+      alert.alert_id,
+      EVENT_TYPES.ALERT_CREATED,
+      'SOS alert created',
+      { deviceId: alert.device_id, latitude: alert.latitude, longitude: alert.longitude, batteryLevel: alert.battery_level, signalStatus: alert.signal_status }
+    );
 
     // Broadcast to connected dashboard clients
     emitAlertCreated(alert);
@@ -200,7 +212,46 @@ router.get('/active', (_req, res) => {
 });
 
 // ===========================================
-//  4. GET SINGLE ALERT
+//  4. GET ALERT TIMELINE
+//  GET /api/alerts/:alertId/timeline
+//
+//  IMPORTANT: This route MUST be defined BEFORE
+//  /:alertId or Express will match "timeline" as
+//  an alertId parameter.
+// ===========================================
+
+router.get('/:alertId/timeline', (req, res) => {
+  const { alertId } = req.params;
+
+  if (!isValidAlertId(alertId)) {
+    return res.status(400).json({ error: { message: 'Invalid alertId format — must be a valid UUID' } });
+  }
+
+  try {
+    const alert = getAlertById(alertId);
+    if (!alert) {
+      return res.status(404).json({ error: { message: `Alert not found: ${alertId}` } });
+    }
+
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 100;
+    const offset = req.query.offset ? parseInt(req.query.offset, 10) : 0;
+
+    const events = getIncidentEvents(alertId, { limit, offset });
+
+    return res.json({
+      alert_id: alertId,
+      status: alert.status,
+      events,
+      count: events.length,
+    });
+  } catch (err) {
+    console.error('[Alerts] Timeline error:', err.message);
+    return res.status(500).json({ error: { message: 'Failed to retrieve timeline' } });
+  }
+});
+
+// ===========================================
+//  5. GET SINGLE ALERT
 //  GET /api/alerts/:alertId
 // ===========================================
 
@@ -250,6 +301,14 @@ router.patch('/:alertId/acknowledge', (req, res) => {
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.ACKNOWLEDGED);
 
+    // Log timeline event
+    insertIncidentEvent(
+      alertId,
+      EVENT_TYPES.STATUS_CHANGED,
+      'Alert acknowledged',
+      { from: alert.status, to: ALERT_STATUSES.ACKNOWLEDGED }
+    );
+
     // Broadcast to connected dashboard clients
     emitAlertAcknowledged(updated);
 
@@ -287,6 +346,14 @@ router.patch('/:alertId/resolve', (req, res) => {
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.RESOLVED);
 
+    // Log timeline event
+    insertIncidentEvent(
+      alertId,
+      EVENT_TYPES.STATUS_CHANGED,
+      'Alert resolved',
+      { from: alert.status, to: ALERT_STATUSES.RESOLVED }
+    );
+
     // Broadcast to connected dashboard clients
     emitAlertResolved(updated);
 
@@ -323,6 +390,14 @@ router.patch('/:alertId/cancel', (req, res) => {
     }
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.CANCELLED);
+
+    // Log timeline event
+    insertIncidentEvent(
+      alertId,
+      EVENT_TYPES.STATUS_CHANGED,
+      'Alert cancelled',
+      { from: alert.status, to: ALERT_STATUSES.CANCELLED }
+    );
 
     // Broadcast to connected dashboard clients
     emitAlertCancelled(updated);
