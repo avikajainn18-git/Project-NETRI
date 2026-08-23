@@ -11,6 +11,12 @@ const {
   transitionAlertStatus,
   ALERT_STATUSES,
 } = require('../db');
+const {
+  emitAlertCreated,
+  emitAlertAcknowledged,
+  emitAlertResolved,
+  emitAlertCancelled,
+} = require('../services/socket');
 
 const router = Router();
 
@@ -121,6 +127,9 @@ router.post('/', (req, res) => {
       batteryLevel: req.body.batteryLevel ?? null,
       signalStatus: req.body.signalStatus || null,
     });
+
+    // Broadcast to connected dashboard clients
+    emitAlertCreated(alert);
 
     return res.status(201).json({ alert });
   } catch (err) {
@@ -240,6 +249,10 @@ router.patch('/:alertId/acknowledge', (req, res) => {
     }
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.ACKNOWLEDGED);
+
+    // Broadcast to connected dashboard clients
+    emitAlertAcknowledged(updated);
+
     return res.json({ alert: updated });
   } catch (err) {
     console.error('[Alerts] Acknowledge error:', err.message);
@@ -273,6 +286,10 @@ router.patch('/:alertId/resolve', (req, res) => {
     }
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.RESOLVED);
+
+    // Broadcast to connected dashboard clients
+    emitAlertResolved(updated);
+
     return res.json({ alert: updated });
   } catch (err) {
     console.error('[Alerts] Resolve error:', err.message);
@@ -306,6 +323,10 @@ router.patch('/:alertId/cancel', (req, res) => {
     }
 
     const updated = transitionAlertStatus(alertId, ALERT_STATUSES.CANCELLED);
+
+    // Broadcast to connected dashboard clients
+    emitAlertCancelled(updated);
+
     return res.json({ alert: updated });
   } catch (err) {
     console.error('[Alerts] Cancel error:', err.message);

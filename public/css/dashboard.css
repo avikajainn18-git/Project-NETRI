@@ -341,8 +341,10 @@ html, body {
 }
 
 .status-Active { background: #4a3a10; color: #e0b830; }
+.status-Acknowledged { background: #2c2634; color: #b9aec2; }
 .status-Escalated { background: #4a1416; color: #f28b8e; }
 .status-Resolved { background: #163a1d; color: #8fd89c; }
+.status-Cancelled { background: #2c2634; color: #857a89; }
 
 /* RESPONSIVE FALLBACK */
 @media (max-width: 1000px) {

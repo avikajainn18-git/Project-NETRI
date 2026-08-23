@@ -9,6 +9,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { initializeDatabase } = require('./db');
+const { initSocket } = require('./services/socket');
 
 // -------------------------------------------
 //  Configuration
@@ -51,8 +52,9 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/alerts', require('./routes/alerts'));
+app.use('/api/device', require('./routes/devices'));
 
-// TODO: Phase 4 — Mount contact/recipient routes here
+// TODO: Mount contact/recipient routes here
 // app.use('/api/contacts', require('./routes/contacts'));
 
 // -------------------------------------------
@@ -109,13 +111,12 @@ const io = new Server(server, {
 });
 
 // Track connected clients
+// Initialize the socket service so routes can emit events
+initSocket(io);
+
+// Track connected clients
 io.on('connection', (socket) => {
   console.log(`[Socket.IO] Client connected: ${socket.id}`);
-
-  // TODO: Phase 2 — Listen for 'alert:trigger' events here
-  // socket.on('alert:trigger', (data) => { ... });
-
-  // TODO: Phase 3 — Listen for 'alert:acknowledge' events here
 
   socket.on('disconnect', (reason) => {
     console.log(`[Socket.IO] Client disconnected: ${socket.id} (${reason})`);

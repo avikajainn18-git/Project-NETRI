@@ -3,18 +3,15 @@
 //  Uses better-sqlite3 (synchronous SQLite3)
 // =============================================
 
-import Database from 'better-sqlite3';
-import { randomUUID } from 'crypto';
-import { dirname, join } from 'path';
-import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+const Database = require('better-sqlite3');
+const { randomUUID } = require('crypto');
+const path = require('path');
 
 // -------------------------------------------
 //  Configuration
 // -------------------------------------------
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.DB_PATH || join(__dirname, '..', 'netri.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'netri.db');
 
 // Valid alert statuses — single source of truth
 const ALERT_STATUSES = Object.freeze({
@@ -73,6 +70,21 @@ function initializeDatabase() {
   // Index on device_id for fast lookups per device
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_alerts_device ON alerts(device_id);
+  `);
+
+  // Create the devices table (latest state per device)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS devices (
+      device_id     TEXT PRIMARY KEY,
+      battery_level INTEGER,
+      network_status TEXT,
+      device_state  TEXT DEFAULT 'IDLE',
+      latitude      REAL,
+      longitude     REAL,
+      last_heartbeat TEXT,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   console.log(`[Database] Initialized at ${DB_PATH}`);
@@ -255,10 +267,146 @@ function transitionAlertStatus(alertId, newStatus) {
 }
 
 // -------------------------------------------
+//  Device CRUD Operations
+// -------------------------------------------
+
+/**
+ * Get a single device by ID.
+ * @param {string} deviceId
+ * @returns {Object|null} The device record, or null if not found.
+ */
+function getDeviceById(deviceId) {
+  return getDb()
+    .prepare('SELECT * FROM devices WHERE device_id = ?')
+    .get(deviceId) || null;
+}
+
+/**
+ * Upsert a device's state from a heartbeat payload. * Creates the device row if it does not exist. *
+ * @param {string} deviceId
+ * @param {Object} data - Heartbeat data
+ * @param {number} [data.battery]
+ * @param {string} [data.network]
+ * @param {string} [data.state]
+ * @param {number} [data.latitude]
+ * @param {number} [data.longitude]
+ * @param {string} [data.timestamp]
+ * @returns {Object} The device record.
+ */
+function upsertDeviceFromHeartbeat(deviceId, data) {
+  const now = new Date().toISOString();
+  const existing = getDeviceById(deviceId);
+
+  if (existing) {
+    getDb().prepare(`
+      UPDATE devices SET
+        battery_level = @batteryLevel,
+        network_status = @networkStatus,
+        device_state = @deviceState,
+        latitude = @latitude,
+        longitude = @longitude,
+        last_heartbeat = @lastHeartbeat,
+        updated_at = @updatedAt
+      WHERE device_id = @deviceId
+    `).run({
+      deviceId,
+      batteryLevel: data.battery ?? existing.battery_level,
+      networkStatus: data.network ?? existing.network_status,
+      deviceState: data.state ?? existing.device_state,
+      latitude: data.latitude ?? existing.latitude,
+      longitude: data.longitude ?? existing.longitude,
+      lastHeartbeat: data.timestamp || now,
+      updatedAt: now,
+    });
+  } else {
+    getDb().prepare(`
+      INSERT INTO devices (
+        device_id, battery_level, network_status, device_state,
+        latitude, longitude, last_heartbeat, created_at, updated_at
+      ) VALUES (
+        @deviceId, @batteryLevel, @networkStatus, @deviceState,
+        @latitude, @longitude, @lastHeartbeat, @createdAt, @updatedAt
+      )
+    `).run({
+      deviceId,
+      batteryLevel: data.battery ?? null,
+      networkStatus: data.network ?? 'UNKNOWN',
+      deviceState: data.state ?? 'IDLE',
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      lastHeartbeat: data.timestamp || now,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  return getDeviceById(deviceId);
+}
+
+/**
+ * Update a device's location. *
+ * @param {string} deviceId
+ * @param {number} latitude
+ * @param {number} longitude
+ * @returns {Object} The device record (created if new).
+ */
+function updateDeviceLocation(deviceId, latitude, longitude) {
+  const now = new Date().toISOString();
+  const existing = getDeviceById(deviceId);
+
+  if (existing) {
+    getDb().prepare(`
+      UPDATE devices SET latitude = @latitude, longitude = @longitude, updated_at = @updatedAt
+      WHERE device_id = @deviceId
+    `).run({ deviceId, latitude, longitude, updatedAt: now });
+  } else {
+    getDb().prepare(`
+      INSERT INTO devices (device_id, latitude, longitude, created_at, updated_at)
+      VALUES (@deviceId, @latitude, @longitude, @createdAt, @updatedAt)
+    `).run({ deviceId, latitude, longitude, createdAt: now, updatedAt: now });
+  }
+
+  return getDeviceById(deviceId);
+}
+
+/**
+ * Reset a device to its initial/default state. *
+ * @param {string} deviceId
+ * @returns {Object} The reset device record (created if new).
+ */
+function resetDevice(deviceId) {
+  const now = new Date().toISOString();
+  const existing = getDeviceById(deviceId);
+
+  if (existing) {
+    getDb().prepare(`
+      UPDATE devices SET
+        battery_level = 82,
+        network_status = 'ONLINE',
+        device_state = 'IDLE',
+        latitude = NULL,
+        longitude = NULL,
+        last_heartbeat = NULL,
+        updated_at = @updatedAt
+      WHERE device_id = @deviceId
+    `).run({ deviceId, updatedAt: now });
+  } else {
+    getDb().prepare(`
+      INSERT INTO devices (
+        device_id, battery_level, network_status, device_state,
+        created_at, updated_at
+      ) VALUES (@deviceId, 82, 'ONLINE', 'IDLE', @createdAt, @updatedAt)
+    `).run({ deviceId, createdAt: now, updatedAt: now });
+  }
+
+  return getDeviceById(deviceId);
+}
+
+// -------------------------------------------
 //  Exports
 // -------------------------------------------
 
-export default {
+module.exports = {
   // Initialization
   initializeDatabase,
   getDb,
@@ -273,4 +421,10 @@ export default {
   getAlerts,
   updateAlert,
   transitionAlertStatus,
+
+  // Device operations
+  getDeviceById,
+  upsertDeviceFromHeartbeat,
+  updateDeviceLocation,
+  resetDevice,
 };
