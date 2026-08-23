@@ -13,6 +13,9 @@ var alerts = [];
 var selectedCaseId = null;
 var markers = {};
 var socket = null;
+var evidenceCache = {};
+var audioPlayer = null;
+var currentAudioEvidenceId = null;
 
 /* =========================================================
    3. MAP INITIALIZATION
@@ -169,6 +172,13 @@ function connectSocket() {
     console.log("[Dashboard] alert:cancelled - " + data.alert.alert_id);
     updateAlertFromEvent(data.alert);
   });
+
+  socket.on("evidence:uploaded", function (data) {
+    console.log("[Dashboard] evidence:uploaded - " + data.evidence_id + " for alert " + data.alert_id);
+    if (data.alert_id === selectedCaseId) {
+      fetchEvidenceForAlert(data.alert_id, true);
+    }
+  });
 }
 
 function updateAlertFromEvent(backendAlert) {
@@ -246,12 +256,14 @@ function renderCaseList() {
    ========================================================= */
 function selectCase(id) {
   selectedCaseId = id;
+  stopAudio();
   renderMarkers();
   renderCaseList();
   renderSelectedCase();
   renderRecording();
   renderEvidence();
   renderHistory();
+  fetchEvidenceForAlert(id);
   centerMapOnSelectedCase();
 }
 
@@ -312,35 +324,173 @@ function renderSelectedCase() {
 }
 
 /* =========================================================
-   12. RECORDING (placeholder)
+   12. AUDIO EVIDENCE FETCH + RECORDING PLAYBACK
    ========================================================= */
+function fetchEvidenceForAlert(alertId, forceRefresh) {
+  if (!alertId) return;
+  if (evidenceCache[alertId] && !forceRefresh) {
+    renderRecording();
+    renderEvidence();
+    return;
+  }
+  var statusEl = document.getElementById("recording-status");
+  statusEl.textContent = "Loading evidence...";
+  fetch(CONFIG.API_BASE_URL + "/api/alerts/" + encodeURIComponent(alertId) + "/evidence")
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      evidenceCache[alertId] = data.evidence || [];
+      if (selectedCaseId === alertId) {
+        renderRecording();
+        renderEvidence();
+      }
+    })
+    .catch(function (err) {
+      console.error("[Dashboard] Failed to fetch evidence:", err.message);
+      evidenceCache[alertId] = [];
+      if (selectedCaseId === alertId) {
+        renderRecording();
+        renderEvidence();
+      }
+    });
+}
+
+function getAudioEvidence(alertId) {
+  var records = evidenceCache[alertId] || [];
+  for (var i = 0; i < records.length; i++) {
+    if (records[i].evidence_type === "AUDIO") return records[i];
+  }
+  return null;
+}
+
+function stopAudio() {
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+  }
+  currentAudioEvidenceId = null;
+  var playBtn = document.getElementById("play-recording-btn");
+  if (playBtn) playBtn.innerHTML = "\u25B6 Play Recording";
+}
+
 function renderRecording() {
   var statusEl = document.getElementById("recording-status");
   var playBtn = document.getElementById("play-recording-btn");
-  statusEl.textContent = "No recording available";
-  playBtn.disabled = true;
+  var alert = getSelectedCase();
+
+  if (!alert) {
+    statusEl.textContent = "No alert selected";
+    playBtn.disabled = true;
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    return;
+  }
+
+  var evidence = getAudioEvidence(alert.id);
+  if (!evidence) {
+    var cached = evidenceCache[alert.id];
+    if (cached === undefined) {
+      statusEl.textContent = "Loading evidence...";
+    } else {
+      statusEl.textContent = "No recording available";
+    }
+    playBtn.disabled = true;
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    return;
+  }
+
+  var sizeKB = evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
+  statusEl.textContent = "Audio evidence available \u00B7 " + sizeKB + " KB" + (evidence.sha256_hash ? " \u00B7 SHA-256 stored" : "");
+  playBtn.disabled = false;
+  playBtn.innerHTML = "\u25B6 Play Recording";
+  currentAudioEvidenceId = evidence.evidence_id;
 }
 
 document.getElementById("play-recording-btn").addEventListener("click", function () {
-  /* Placeholder - no audio from backend yet */
+  if (!currentAudioEvidenceId) return;
+  var playBtn = document.getElementById("play-recording-btn");
+  var statusEl = document.getElementById("recording-status");
+
+  if (audioPlayer && !audioPlayer.paused && currentAudioEvidenceId === audioPlayer._evidenceId) {
+    audioPlayer.pause();
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    return;
+  }
+
+  if (audioPlayer && !audioPlayer.paused) {
+    audioPlayer.pause();
+  }
+
+  var audioUrl = CONFIG.API_BASE_URL + "/api/evidence/" + currentAudioEvidenceId + "/file";
+  audioPlayer = new Audio(audioUrl);
+  audioPlayer._evidenceId = currentAudioEvidenceId;
+
+  statusEl.textContent = "Loading audio...";
+  playBtn.innerHTML = "\u25B6 Playing";
+  playBtn.disabled = true;
+
+  audioPlayer.addEventListener("canplay", function () {
+    if (currentAudioEvidenceId === audioPlayer._evidenceId) {
+      var evidence = getAudioEvidence(selectedCaseId);
+      var sizeKB = evidence && evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
+      statusEl.textContent = "Playing recording \u00B7 " + sizeKB + " KB";
+      playBtn.innerHTML = "\u23F8 Pause";
+      playBtn.disabled = false;
+    }
+  });
+
+  audioPlayer.addEventListener("ended", function () {
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    var evidence = getAudioEvidence(selectedCaseId);
+    var sizeKB = evidence && evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
+    statusEl.textContent = "Audio evidence available \u00B7 " + sizeKB + " KB";
+  });
+
+  audioPlayer.addEventListener("error", function () {
+    statusEl.textContent = "Failed to load audio recording";
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    playBtn.disabled = true;
+  });
+
+  audioPlayer.load();
 });
 
 /* =========================================================
-   13. EVIDENCE
+   13. EVIDENCE (backend records + static items)
    ========================================================= */
 function renderEvidence() {
   var alert = getSelectedCase();
   var list = document.getElementById("evidence-list");
   list.innerHTML = "";
 
-  if (!alert || !alert.evidence) return;
+  if (!alert) return;
 
-  alert.evidence.forEach(function (item) {
+  /* Static evidence items from alert fields */
+  if (alert.evidence) {
+    alert.evidence.forEach(function (item) {
+      var li = document.createElement("li");
+      li.textContent = item.label;
+      if (!item.done) li.classList.add("pending");
+      list.appendChild(li);
+    });
+  }
+
+  /* Backend evidence records */
+  var records = evidenceCache[alert.id];
+  if (records === undefined) {
     var li = document.createElement("li");
-    li.textContent = item.label;
-    if (!item.done) li.classList.add("pending");
+    li.textContent = "Loading evidence records...";
+    li.classList.add("pending");
     list.appendChild(li);
-  });
+  } else if (records.length > 0) {
+    records.forEach(function (rec) {
+      var li = document.createElement("li");
+      var typeLabel = rec.evidence_type === "AUDIO" ? "Audio Recording" : rec.evidence_type;
+      var sizeLabel = rec.file_size ? " \u00B7 " + Math.round(rec.file_size / 1024) + " KB" : "";
+      var hashLabel = rec.sha256_hash ? " \u00B7 " + rec.sha256_hash.substring(0, 12) + "..." : "";
+      li.textContent = typeLabel + sizeLabel + hashLabel;
+      li.classList.add("evidence-record");
+      list.appendChild(li);
+    });
+  }
 }
 
 /* =========================================================

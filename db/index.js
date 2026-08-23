@@ -110,6 +110,33 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_events_time ON incident_events(alert_id, created_at);
   `);
 
+  // Create the evidence table (audio/video/hash records tied to alerts)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS evidence (
+      evidence_id   TEXT PRIMARY KEY,
+      alert_id      TEXT NOT NULL,
+      evidence_type TEXT NOT NULL
+                    CHECK(evidence_type IN ('AUDIO', 'VIDEO', 'HASH', 'DOCUMENT', 'OTHER')),
+      file_path     TEXT NOT NULL,
+      sha256_hash   TEXT,
+      file_size     INTEGER,
+      mime_type     TEXT,
+      description   TEXT,
+      uploaded_at   TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (alert_id) REFERENCES alerts(alert_id)
+    );
+  `);
+
+  // Index on alert_id for fast evidence lookups per alert
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_evidence_alert ON evidence(alert_id);
+  `);
+
+  // Composite index on (alert_id, evidence_type) for typed queries
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_evidence_type ON evidence(alert_id, evidence_type);
+  `);
+
   console.log(`[Database] Initialized at ${DB_PATH}`);
   return db;
 }
@@ -304,6 +331,15 @@ const EVENT_TYPES = Object.freeze({
   NOTE_ADDED: 'NOTE_ADDED',
 });
 
+// Valid evidence types
+const EVIDENCE_TYPES = Object.freeze({
+  AUDIO: 'AUDIO',
+  VIDEO: 'VIDEO',
+  HASH: 'HASH',
+  DOCUMENT: 'DOCUMENT',
+  OTHER: 'OTHER',
+});
+
 /**
  * Insert a timeline event for an alert.
  * @param {string} alertId - The alert this event belongs to.
@@ -487,6 +523,135 @@ function resetDevice(deviceId) {
 }
 
 // -------------------------------------------
+//  Evidence CRUD Operations
+// -------------------------------------------
+
+/**
+ * Insert a new evidence record.
+ *
+ * @param {Object} data
+ * @param {string} data.alertId - Required. FK to alerts.alert_id.
+ * @param {string} data.evidenceType - One of EVIDENCE_TYPES.
+ * @param {string} data.filePath - Server path to the stored file.
+ * @param {string} [data.sha256Hash] - SHA-256 integrity hash of the file.
+ * @param {number} [data.fileSize] - File size in bytes.
+ * @param {string} [data.mimeType] - MIME type (e.g. 'audio/webm').
+ * @param {string} [data.description] - Optional human-readable note.
+ * @returns {Object} The created evidence record.
+ */
+function insertEvidence(data) {
+  const evidenceId = randomUUID();
+  const uploadedAt = new Date().toISOString();
+
+  getDb().prepare(`
+    INSERT INTO evidence (
+      evidence_id, alert_id, evidence_type, file_path,
+      sha256_hash, file_size, mime_type, description, uploaded_at
+    ) VALUES (
+      @evidenceId, @alertId, @evidenceType, @filePath,
+      @sha256Hash, @fileSize, @mimeType, @description, @uploadedAt
+    )
+  `).run({
+    evidenceId,
+    alertId: data.alertId,
+    evidenceType: data.evidenceType,
+    filePath: data.filePath,
+    sha256Hash: data.sha256Hash || null,
+    fileSize: data.fileSize ?? null,
+    mimeType: data.mimeType || null,
+    description: data.description || null,
+    uploadedAt,
+  });
+
+  return getEvidenceById(evidenceId);
+}
+
+/**
+ * Get a single evidence record by its ID.
+ * @param {string} evidenceId
+ * @returns {Object|null}
+ */
+function getEvidenceById(evidenceId) {
+  return getDb()
+    .prepare('SELECT * FROM evidence WHERE evidence_id = ?')
+    .get(evidenceId) || null;
+}
+
+/**
+ * Get all evidence records for a given alert, optionally filtered by type.
+ * @param {string} alertId
+ * @param {Object} [options]
+ * @param {string} [options.type] - Filter by evidence_type.
+ * @param {number} [options.limit] - Max results (default 50).
+ * @param {number} [options.offset] - Pagination offset.
+ * @returns {Object[]}
+ */
+function getEvidenceByAlertId(alertId, options = {}) {
+  const conditions = ['alert_id = ?'];
+  const params = [alertId];
+
+  if (options.type) {
+    conditions.push('evidence_type = ?');
+    params.push(options.type);
+  }
+
+  const limit = options.limit || 50;
+  const offset = options.offset || 0;
+
+  return getDb()
+    .prepare(
+      `SELECT * FROM evidence
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY uploaded_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, limit, offset);
+}
+
+/**
+ * Get the first (most recent) evidence record of a specific type for an alert.
+ * Useful when you expect a single recording per alert.
+ * @param {string} alertId
+ * @param {string} type - One of EVIDENCE_TYPES values.
+ * @returns {Object|null}
+ */
+function getEvidenceByAlertIdAndType(alertId, type) {
+  return getDb()
+    .prepare(
+      'SELECT * FROM evidence WHERE alert_id = ? AND evidence_type = ? ORDER BY uploaded_at DESC LIMIT 1'
+    )
+    .get(alertId, type) || null;
+}
+
+/**
+ * Delete a single evidence record and return it (for cleanup).
+ * Does NOT delete the actual file from disk — caller is responsible.
+ * @param {string} evidenceId
+ * @returns {Object|null} The deleted record, or null if not found.
+ */
+function deleteEvidence(evidenceId) {
+  const record = getEvidenceById(evidenceId);
+  if (!record) return null;
+
+  getDb().prepare('DELETE FROM evidence WHERE evidence_id = ?').run(evidenceId);
+  return record;
+}
+
+/**
+ * Delete all evidence records for a given alert.
+ * Returns the count of deleted records.
+ * Does NOT delete actual files from disk.
+ * @param {string} alertId
+ * @returns {number} Count of deleted records.
+ */
+function deleteEvidenceByAlertId(alertId) {
+  const result = getDb()
+    .prepare('DELETE FROM evidence WHERE alert_id = ?')
+    .run(alertId);
+  return result.changes;
+}
+
+// -------------------------------------------
 //  Exports
 // -------------------------------------------
 
@@ -499,6 +664,7 @@ module.exports = {
   ALERT_STATUSES,
   VALID_STATUSES,
   EVENT_TYPES,
+  EVIDENCE_TYPES,
 
   // Alert operations
   insertAlert,
@@ -516,4 +682,12 @@ module.exports = {
   upsertDeviceFromHeartbeat,
   updateDeviceLocation,
   resetDevice,
+
+  // Evidence operations
+  insertEvidence,
+  getEvidenceById,
+  getEvidenceByAlertId,
+  getEvidenceByAlertIdAndType,
+  deleteEvidence,
+  deleteEvidenceByAlertId,
 };

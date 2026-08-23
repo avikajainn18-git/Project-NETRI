@@ -7,6 +7,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const { initializeDatabase } = require('./db');
 const { initSocket } = require('./services/socket');
@@ -23,6 +24,10 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // -------------------------------------------
 
 const db = initializeDatabase();
+
+// Ensure evidence uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads', 'evidence');
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 // -------------------------------------------
 //  Express App
@@ -53,6 +58,11 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/device', require('./routes/devices'));
+
+// Evidence routes — alert-scoped upload/list + standalone metadata/download
+const { alertRouter: evidenceAlertRouter, standaloneRouter: evidenceStandaloneRouter } = require('./routes/evidence');
+app.use('/api/alerts', evidenceAlertRouter);
+app.use('/api/evidence', evidenceStandaloneRouter);
 
 // TODO: Mount contact/recipient routes here
 // app.use('/api/contacts', require('./routes/contacts'));
