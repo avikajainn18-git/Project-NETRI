@@ -1,77 +1,73 @@
 Project-NETRI
 
-## The problem:
+A smart compact mirror that sends your location & distress alert with a triple-tap—no phone unlock needed. Works offline.
 
-In danger, you can't unlock your phone and tap through an app. 
-Safety apps don't work when you need them most. 
-Separate devices are one more thing to carry.
+---
 
-Every woman already carries a compact mirror. Nobody questions it.
+## The Problem
+
+In danger, you can't calmly unlock your phone and tap through an app. 
+Existing safety devices are one more thing to carry. 
+Compact mirrors are already in every woman's bag—and nobody questions her holding one.
 
 ## The Solution
 
-A smart compact mirror. 
-Triple-tap it and it silently sends your GPS location and distress alert to trusted contacts and responders. 
-Works offline on basic cell signal. 
-No internet needed.
+Tap your compact mirror 3 times and it silently alerts trusted contacts & responders with your GPS location. 
+All via GSM signal—works on a bus, in a lift, anywhere there's cell coverage. 
+No internet. No app.
 
-## MVP - What We're Building First
+---
 
-Core features only:
+## Key Features
+- **Triple-tap activation**     —   instant, hands-free
+- **Offline works**             —   GSM/SMS only, no data needed
+- **Multiple modes**            —   distress alert, silent recording, voice activation
+- **Intelligent filtering**     —   knows real emergency from bag bump
+- **Already-carry form factor** —   compact mirror is unsuspicious
+- **Real-time dispatch**        —   responders see live location + details
 
-Triple-tap to send emergency alert
-Automatic GPS location tracking
-SMS and data transmission (offline and online)
-Real-time responder dashboard with map
-Simple alert status (sent, received, dispatched)
-
-Features coming later:
-
-Voice activation
-Silent recording
-Mobile apps
-Advanced filtering
-112 ERSS integration
-
-## Key Features: 
-
-Instant activation (no phone unlock needed)
-Works offline (GSM/SMS signal, no data required)
-Sends live GPS location to responders
-Smart filtering (real emergency vs accidental bump)
-Real-time responder dashboard with map tracking
-Multiple alert channels (SMS and web)
+---
 
 ## How It Works:
+[Device Detects] → [Multiple Activation] → [SMS/Data Alert] → [Responder Dashboard] → [Dispatch]
 
-You tap -> Location sent -> Responders alerted -> Live dispatch
+---
 
-Online: Cellular data or BLE -> HTTPS API -> Backend -> Dashboard
+## Tech Stack
 
-Offline: GSM/SMS -> SMS Gateway -> Backend -> Dashboard
+**Phase 1 (This Weekend) — Prototype**
+- Device    :  (HTML/CSS/JS + Geolocation API)
+- Backend   :  Node.js + Express, Socket.io, SQLite
+- Dashboard :  HTML/CSS/JS, Leaflet + OpenStreetMap
+- Transport :  HTTP POST over WiFi
 
-## Tech Stack:
-Phase 1 - Prototype
+**Phase 2 (Production) — Real Hardware**
+- Hardware      :    ESP32 + ADXL345 accelerometer + MEMS mic + GSM module + LiPo
+- Firmware      :    C/C++ (Arduino/ESP-IDF), on-device tap/voice detection
+- Backend       :    Node.js + Express (scaled), PostgreSQL, AWS/GCP
+- Frontend      :    React web app + React Native/Flutter mobile
+- Connectivity  :    Dual-path (GSM/SMS offline + cellular/BLE online)
+- Ingestion     :    Twilio SMS Gateway + HTTPS API
+- Integration   :    112 ERSS, real-time WebSockets, push notifications
 
-Device simulator     :    HTML/CSS/JS + browser Geolocation 
-Backend              :    Node.js, Express, Socket.io, SQLite 
-Dashboard            :    HTML/CSS/JS, Leaflet, OpenStreetMap 
-Transport            :    HTTP POST over WiFi
+---
 
-Phase 2 - Production
+## Competitive Edge
 
-Hardware     :     ESP32, accelerometer, MEMS mic, GSM module, LiPo battery 
-Firmware     :     C/C++ (Arduino/ESP-IDF) with tap detection 
-Backend      :     Node.js, Express, PostgreSQL, AWS/GCP 
-Frontend     :     React dashboard, React Native/Flutter mobile apps 
-Connectivity :     GSM/SMS (offline) and cellular/BLE (online) 
-SMS          :     Twilio 
-Integration  :     112 ERSS API, WebSockets, FCM/APNs
+|          Factor           |          SafeCompact           |    Competitors (Apps)     |
+|---------------------------|--------------------------------|---------------------------|
+| Activation                | Triple-tap (instant)           | Unlock phone + app (3–5 sec) |
+| Offline                   | ✓ Works on GSM/SMS             | ✗ Needs internet          |
+| Form Factor               | Compact mirror(always carried) | Phone/smartwatch (obvious) |       
+| Recording                 | ✓ Built-in                     | ✗ Separate                |
+| Cost                      | ~$60–80 device + $2–5/mo       | Phone + $5–15/mo app       |
 
-## Target Users:
-Women commuting alone
-Students and young professionals
-Women in high-risk professions
-Anyone concerned about personal safety
-Law enforcement and emergency responders
+---
+
+## Getting Involved
+
+- **Designers:** Compact mirror industrial design, UI for responder dashboard
+- **Hardware Engineers:** ESP32 firmware, sensor calibration
+- **Backend Developers:** Escalation logic, location resolution, 112 ERSS integration
+- **Mobile Developers:** React Native/Flutter responder & user apps
 
