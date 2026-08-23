@@ -306,7 +306,7 @@ standaloneRouter.get('/:evidenceId/file', (req, res) => {
 
   // Set appropriate headers
   res.setHeader('Content-Type', evidence.mime_type || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Disposition', 'inline');
   if (evidence.file_size) {
     res.setHeader('Content-Length', evidence.file_size);
   }

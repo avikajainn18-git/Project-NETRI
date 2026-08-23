@@ -119,6 +119,7 @@ async function loadAlertsFromAPI() {
       selectedCaseId = alerts[0].id;
     }
     renderAll();
+    if (selectedCaseId) fetchEvidenceForAlert(selectedCaseId);
     console.log("[Dashboard] Loaded " + alerts.length + " alerts from API");
   } catch (err) {
     console.error("[Dashboard] Failed to load alerts:", err.message);
@@ -152,10 +153,9 @@ function connectSocket() {
     if (!exists) {
       alerts.unshift(dashboardAlert);
     }
-    if (!selectedCaseId) {
-      selectedCaseId = dashboardAlert.id;
-    }
+    selectedCaseId = dashboardAlert.id;
     renderAll();
+    fetchEvidenceForAlert(selectedCaseId);
   });
 
   socket.on("alert:acknowledged", function (data) {
@@ -365,11 +365,18 @@ function getAudioEvidence(alertId) {
 function stopAudio() {
   if (audioPlayer) {
     audioPlayer.pause();
-    audioPlayer.currentTime = 0;
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    audioPlayer = null;
   }
   currentAudioEvidenceId = null;
   var playBtn = document.getElementById("play-recording-btn");
-  if (playBtn) playBtn.innerHTML = "\u25B6 Play Recording";
+  var statusEl = document.getElementById("recording-status");
+  if (playBtn) {
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    playBtn.disabled = true;
+  }
+  if (statusEl) statusEl.textContent = "No recording";
 }
 
 function renderRecording() {
@@ -404,53 +411,75 @@ function renderRecording() {
   currentAudioEvidenceId = evidence.evidence_id;
 }
 
+function formatEvidenceSize(evidence) {
+  var sizeKB = evidence && evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
+  return sizeKB + " KB";
+}
+
 document.getElementById("play-recording-btn").addEventListener("click", function () {
   if (!currentAudioEvidenceId) return;
   var playBtn = document.getElementById("play-recording-btn");
   var statusEl = document.getElementById("recording-status");
 
-  if (audioPlayer && !audioPlayer.paused && currentAudioEvidenceId === audioPlayer._evidenceId) {
-    audioPlayer.pause();
-    playBtn.innerHTML = "\u25B6 Play Recording";
+  // Resume paused audio (same evidence)
+  if (audioPlayer && audioPlayer.paused && currentAudioEvidenceId === audioPlayer._evidenceId) {
+    audioPlayer.play().catch(function () {});
     return;
   }
 
-  if (audioPlayer && !audioPlayer.paused) {
+  // Pause playing audio (same evidence)
+  if (audioPlayer && !audioPlayer.paused && currentAudioEvidenceId === audioPlayer._evidenceId) {
     audioPlayer.pause();
+    playBtn.innerHTML = "\u25B6 Play Recording";
+    var evidence = getAudioEvidence(selectedCaseId);
+    statusEl.textContent = "Audio paused \u00B7 " + formatEvidenceSize(evidence);
+    return;
   }
 
+  // Different evidence or first play — clean up old player
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    audioPlayer = null;
+  }
+
+  // Create new Audio player
   var audioUrl = CONFIG.API_BASE_URL + "/api/evidence/" + currentAudioEvidenceId + "/file";
   audioPlayer = new Audio(audioUrl);
   audioPlayer._evidenceId = currentAudioEvidenceId;
 
   statusEl.textContent = "Loading audio...";
-  playBtn.innerHTML = "\u25B6 Playing";
+  playBtn.innerHTML = "\u25B6 Loading";
   playBtn.disabled = true;
 
-  audioPlayer.addEventListener("canplay", function () {
-    if (currentAudioEvidenceId === audioPlayer._evidenceId) {
+  audioPlayer.addEventListener("canplay", function onCanPlay() {
+    audioPlayer.removeEventListener("canplay", onCanPlay);
+    if (currentAudioEvidenceId !== audioPlayer._evidenceId) return;
+    // Only show playing state if not paused by user during load
+    if (!audioPlayer.paused) {
       var evidence = getAudioEvidence(selectedCaseId);
-      var sizeKB = evidence && evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
-      statusEl.textContent = "Playing recording \u00B7 " + sizeKB + " KB";
+      statusEl.textContent = "Playing recording \u00B7 " + formatEvidenceSize(evidence);
       playBtn.innerHTML = "\u23F8 Pause";
       playBtn.disabled = false;
     }
   });
 
-  audioPlayer.addEventListener("ended", function () {
+  audioPlayer.addEventListener("ended", function onEnded() {
+    audioPlayer.removeEventListener("ended", onEnded);
     playBtn.innerHTML = "\u25B6 Play Recording";
     var evidence = getAudioEvidence(selectedCaseId);
-    var sizeKB = evidence && evidence.file_size ? Math.round(evidence.file_size / 1024) : "?";
-    statusEl.textContent = "Audio evidence available \u00B7 " + sizeKB + " KB";
+    statusEl.textContent = "Audio playback complete \u00B7 " + formatEvidenceSize(evidence);
   });
 
-  audioPlayer.addEventListener("error", function () {
+  audioPlayer.addEventListener("error", function onError() {
+    audioPlayer.removeEventListener("error", onError);
     statusEl.textContent = "Failed to load audio recording";
     playBtn.innerHTML = "\u25B6 Play Recording";
     playBtn.disabled = true;
   });
 
-  audioPlayer.load();
+  audioPlayer.play().catch(function () {});
 });
 
 /* =========================================================
