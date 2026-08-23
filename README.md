@@ -30,7 +30,7 @@ The proposed production system uses **GSM/SMS-based communication**, allowing al
 * **Intelligent filtering** — Helps distinguish intentional emergency triggers from accidental activation
 * **Everyday form factor** — Safety functionality integrated into a familiar compact mirror
 * **Real-time response** — Responders can view location and incident details through the dashboard
-* **Proven technologies** — Built around established hardware and software technologies reducing chances of failing
+* **Proven technologies** — Built around established hardware and software technologies reducing chances of failure.
 
 ---
 
