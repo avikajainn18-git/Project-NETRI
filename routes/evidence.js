@@ -157,8 +157,8 @@ alertRouter.post('/:alertId/evidence/audio', (req, res) => {
       // Log timeline event
       insertIncidentEvent(
         alertId,
-        EVENT_TYPES.STATUS_CHANGED,
-        'Audio evidence uploaded',
+        EVENT_TYPES.EVIDENCE_UPLOADED,
+        `Audio evidence uploaded — ${req.file.size} bytes`,
         {
           evidenceId: evidence.evidence_id,
           mimeType: req.file.mimetype,
