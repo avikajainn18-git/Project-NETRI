@@ -26,6 +26,28 @@ No internet. No app.
 [Device Detects] --> [Multiple Activation] --> [SMS Alert] --> [Responder Dashboard] --> [Dispatch]
 
 ## Tech Stack
+**Phase 1 (This Weekend) — Prototype**
+- Device: `simulator.html` (HTML/CSS/JS + Geolocation API)
+- Backend: Node.js + Express, Socket.io, SQLite
+- Dashboard: HTML/CSS/JS, Leaflet + OpenStreetMap
+- Transport: HTTP POST over WiFi
+
+**Phase 2 (Production) — Real Hardware**
+- Hardware: ESP32 + ADXL345 accelerometer + MEMS mic + GSM module + LiPo
+- Firmware: C/C++ (Arduino/ESP-IDF), on-device tap/voice detection
+- Backend: Node.js + Express (scaled), PostgreSQL, AWS/GCP
+- Frontend: React web app + React Native/Flutter mobile
+- Connectivity: Dual-path (GSM/SMS offline + cellular/BLE online)
+- Ingestion: Twilio SMS Gateway + HTTPS API
+- Integration: 112 ERSS, real-time WebSockets, push notifications
+
+## Getting Involved
+- **Designers:** Compact mirror industrial design, UI for responder dashboard
+- **Hardware Engineers:** ESP32 firmware, sensor calibration
+- **Backend Developers:** Escalation logic, location resolution, 112 ERSS integration
+- **Mobile Developers:** React Native/Flutter responder & user apps
+
+
 
 
 
