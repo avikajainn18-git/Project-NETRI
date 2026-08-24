@@ -63,12 +63,18 @@ function initializeDatabase() {
       longitude     REAL,
       battery_level INTEGER,
       signal_status TEXT,
+      trusted_contacts TEXT,
       status        TEXT NOT NULL DEFAULT 'ACTIVE'
                     CHECK(status IN ('ACTIVE', 'ACKNOWLEDGED', 'ESCALATED', 'RESOLVED', 'CANCELLED')),
       acknowledged_at TEXT,
       resolved_at   TEXT
     );
   `);
+
+  const alertColumns = db.prepare('PRAGMA table_info(alerts)').all().map((column) => column.name);
+  if (!alertColumns.includes('trusted_contacts')) {
+    db.exec('ALTER TABLE alerts ADD COLUMN trusted_contacts TEXT');
+  }
 
   // Index on status for fast filtering of active alerts
   db.exec(`
@@ -209,6 +215,7 @@ function insertAlert(data) {
     longitude: data.longitude ?? null,
     batteryLevel: data.batteryLevel ?? null,
     signalStatus: data.signalStatus || null,
+    trustedContacts: data.trustedContacts ? JSON.stringify(data.trustedContacts) : null,
     status: ALERT_STATUSES.ACTIVE,
     severity: data.severity || 'MEDIUM',
     severityChangedAt: createdAt,
@@ -466,7 +473,9 @@ function getDeviceById(deviceId) {
 }
 
 /**
- * Upsert a device's state from a heartbeat payload. * Creates the device row if it does not exist. *
+ * Upsert a device's state from a heartbeat payload.
+ * Creates the device row if it does not exist.
+ *
  * @param {string} deviceId
  * @param {Object} data - Heartbeat data
  * @param {number} [data.battery]
@@ -528,7 +537,8 @@ function upsertDeviceFromHeartbeat(deviceId, data) {
 }
 
 /**
- * Update a device's location. *
+ * Update a device's location.
+ *
  * @param {string} deviceId
  * @param {number} latitude
  * @param {number} longitude
@@ -554,7 +564,8 @@ function updateDeviceLocation(deviceId, latitude, longitude) {
 }
 
 /**
- * Reset a device to its initial/default state. *
+ * Reset a device to its initial/default state.
+ *
  * @param {string} deviceId
  * @returns {Object} The reset device record (created if new).
  */

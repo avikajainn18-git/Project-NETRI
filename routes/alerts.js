@@ -35,6 +35,10 @@ const router = Router();
 function validateAlertPayload(body) {
   const errors = [];
 
+  if (body.trustedContacts !== undefined && !Array.isArray(body.trustedContacts)) {
+    errors.push('trustedContacts must be an array');
+  }
+
   // deviceId — required
   if (!body.deviceId || typeof body.deviceId !== 'string' || body.deviceId.trim() === '') {
     errors.push('deviceId is required and must be a non-empty string');
@@ -131,6 +135,14 @@ router.post('/', (req, res) => {
       longitude: req.body.longitude ?? null,
       batteryLevel: req.body.batteryLevel ?? null,
       signalStatus: req.body.signalStatus || null,
+      trustedContacts: Array.isArray(req.body.trustedContacts)
+        ? req.body.trustedContacts.map((contact) => ({
+          name: String(contact.name || '').trim(),
+          phone: String(contact.phone || '').trim(),
+          relation: String(contact.relation || '').trim(),
+          access: String(contact.access || '').trim(),
+        })).filter((contact) => contact.name && contact.phone)
+        : [],
     });
 
     // Log timeline event
