@@ -71,11 +71,6 @@ function initializeDatabase() {
     );
   `);
 
-  const alertColumns = db.prepare('PRAGMA table_info(alerts)').all().map((column) => column.name);
-  if (!alertColumns.includes('trusted_contacts')) {
-    db.exec('ALTER TABLE alerts ADD COLUMN trusted_contacts TEXT');
-  }
-
   // Index on status for fast filtering of active alerts
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
@@ -86,8 +81,11 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_alerts_device ON alerts(device_id);
   `);
 
-  // Migration: add severity column if missing
-  const alertColumns = db.prepare("PRAGMA table_info(alerts)").all();
+  // Migration: add columns that may be missing from older schemas
+  const alertColumns = db.prepare('PRAGMA table_info(alerts)').all();
+  if (!alertColumns.some(c => c.name === 'trusted_contacts')) {
+    db.exec('ALTER TABLE alerts ADD COLUMN trusted_contacts TEXT');
+  }
   if (!alertColumns.some(c => c.name === 'severity')) {
     db.exec(`ALTER TABLE alerts ADD COLUMN severity TEXT NOT NULL DEFAULT 'MEDIUM'`);
     console.log('[Database] Added severity column to alerts table');
@@ -199,10 +197,10 @@ function insertAlert(data) {
   const stmt = getDb().prepare(`
     INSERT INTO alerts (
       alert_id, device_id, created_at, triggered_at,
-      latitude, longitude, battery_level, signal_status, status, severity, severity_changed_at
+      latitude, longitude, battery_level, signal_status, trusted_contacts, status, severity, severity_changed_at
     ) VALUES (
       @alertId, @deviceId, @createdAt, @triggeredAt,
-      @latitude, @longitude, @batteryLevel, @signalStatus, @status, @severity, @severityChangedAt
+      @latitude, @longitude, @batteryLevel, @signalStatus, @trustedContacts, @status, @severity, @severityChangedAt
     )
   `);
 
