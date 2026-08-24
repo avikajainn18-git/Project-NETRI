@@ -24,6 +24,14 @@ const ALERT_STATUSES = Object.freeze({
 
 const VALID_STATUSES = Object.values(ALERT_STATUSES);
 
+// Valid severity levels
+const ALERT_SEVERITIES = Object.freeze({
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL',
+});
+
 // -------------------------------------------
 //  Database Initialization
 // -------------------------------------------
@@ -71,6 +79,17 @@ function initializeDatabase() {
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_alerts_device ON alerts(device_id);
   `);
+
+  // Migration: add severity column if missing
+  const alertColumns = db.prepare("PRAGMA table_info(alerts)").all();
+  if (!alertColumns.some(c => c.name === 'severity')) {
+    db.exec(`ALTER TABLE alerts ADD COLUMN severity TEXT NOT NULL DEFAULT 'MEDIUM'`);
+    console.log('[Database] Added severity column to alerts table');
+  }
+  if (!alertColumns.some(c => c.name === 'severity_changed_at')) {
+    db.exec(`ALTER TABLE alerts ADD COLUMN severity_changed_at TEXT`);
+    console.log('[Database] Added severity_changed_at column to alerts table');
+  }
 
   // Create the devices table (latest state per device)
   db.exec(`
@@ -174,10 +193,10 @@ function insertAlert(data) {
   const stmt = getDb().prepare(`
     INSERT INTO alerts (
       alert_id, device_id, created_at, triggered_at,
-      latitude, longitude, battery_level, signal_status, status
+      latitude, longitude, battery_level, signal_status, status, severity, severity_changed_at
     ) VALUES (
       @alertId, @deviceId, @createdAt, @triggeredAt,
-      @latitude, @longitude, @batteryLevel, @signalStatus, @status
+      @latitude, @longitude, @batteryLevel, @signalStatus, @status, @severity, @severityChangedAt
     )
   `);
 
@@ -191,6 +210,8 @@ function insertAlert(data) {
     batteryLevel: data.batteryLevel ?? null,
     signalStatus: data.signalStatus || null,
     status: ALERT_STATUSES.ACTIVE,
+    severity: data.severity || 'MEDIUM',
+    severityChangedAt: createdAt,
   });
 
   return getAlertById(alertId);
@@ -243,6 +264,34 @@ function getAlerts(filters = {}) {
 }
 
 /**
+ * Get all active (non-terminal) alerts.
+ * Used by the escalation service on server restart.
+ * @returns {Object[]} Array of active alert records.
+ */
+function getActiveAlerts() {
+  return getDb()
+    .prepare("SELECT * FROM alerts WHERE status IN ('ACTIVE', 'ACKNOWLEDGED')")
+    .all();
+}
+
+/**
+ * Update an alert's severity.
+ * @param {string} alertId
+ * @param {string} severity - One of ALERT_SEVERITIES values.
+ * @returns {Object|null} The updated alert, or null if not found.
+ */
+function updateAlertSeverity(alertId, severity) {
+  if (!Object.values(ALERT_SEVERITIES).includes(severity)) {
+    throw new Error(`Invalid severity: ${severity}. Must be one of: ${Object.values(ALERT_SEVERITIES).join(', ')}`);
+  }
+  const now = new Date().toISOString();
+  getDb()
+    .prepare('UPDATE alerts SET severity = @severity, severity_changed_at = @changedAt WHERE alert_id = @alertId')
+    .run({ alertId, severity, changedAt: now });
+  return getAlertById(alertId);
+}
+
+/**
  * Update specific fields on an alert.
  * @param {string} alertId
  * @param {Object} updates - Fields to update (only provided fields are set).
@@ -251,7 +300,7 @@ function getAlerts(filters = {}) {
 function updateAlert(alertId, updates) {
   const allowedFields = [
     'status', 'triggered_at', 'latitude', 'longitude',
-    'battery_level', 'signal_status', 'acknowledged_at', 'resolved_at',
+    'battery_level', 'signal_status', 'acknowledged_at', 'resolved_at', 'severity', 'severity_changed_at',
   ];
 
   const setClauses = [];
@@ -330,6 +379,8 @@ const EVENT_TYPES = Object.freeze({
   DEVICE_HEARTBEAT: 'DEVICE_HEARTBEAT',
   NOTE_ADDED: 'NOTE_ADDED',
   EVIDENCE_UPLOADED: 'EVIDENCE_UPLOADED',
+  USER_RESPONDED: 'USER_RESPONDED',
+  SEVERITY_CHANGED: 'SEVERITY_CHANGED',
 });
 
 // Valid evidence types
@@ -385,6 +436,18 @@ function getIncidentEvents(alertId, options = {}) {
   return getDb()
     .prepare('SELECT * FROM incident_events WHERE alert_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?')
     .all(alertId, limit, offset);
+}
+
+/**
+ * Check whether a user response event already exists for an alert.
+ * Used to prevent duplicate responses from creating inconsistent state.
+ * @param {string} alertId
+ * @returns {Object|null} The existing USER_RESPONDED event, or null.
+ */
+function hasUserResponded(alertId) {
+  return getDb()
+    .prepare("SELECT * FROM incident_events WHERE alert_id = ? AND event_type = 'USER_RESPONDED' LIMIT 1")
+    .get(alertId) || null;
 }
 
 // -------------------------------------------
@@ -664,6 +727,7 @@ module.exports = {
   // Constants
   ALERT_STATUSES,
   VALID_STATUSES,
+  ALERT_SEVERITIES,
   EVENT_TYPES,
   EVIDENCE_TYPES,
 
@@ -671,12 +735,15 @@ module.exports = {
   insertAlert,
   getAlertById,
   getAlerts,
+  getActiveAlerts,
   updateAlert,
+  updateAlertSeverity,
   transitionAlertStatus,
 
   // Incident event (timeline) operations
   insertIncidentEvent,
   getIncidentEvents,
+  hasUserResponded,
 
   // Device operations
   getDeviceById,

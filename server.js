@@ -11,6 +11,7 @@ const fs = require('fs');
 require('dotenv').config();
 const { initializeDatabase } = require('./db');
 const { initSocket } = require('./services/socket');
+const escalation = require('./services/escalation');
 
 // -------------------------------------------
 //  Configuration
@@ -63,6 +64,9 @@ app.use('/api/device', require('./routes/devices'));
 const { alertRouter: evidenceAlertRouter, standaloneRouter: evidenceStandaloneRouter } = require('./routes/evidence');
 app.use('/api/alerts', evidenceAlertRouter);
 app.use('/api/evidence', evidenceStandaloneRouter);
+
+// User response routes — tracks Compact wearer responses after SOS
+app.use('/api/alerts', require('./routes/user-responses'));
 
 // TODO: Mount contact/recipient routes here
 // app.use('/api/contacts', require('./routes/contacts'));
@@ -148,6 +152,9 @@ server.listen(PORT, () => {
   console.log('  ║  SocketIO: Ready                     ║');
   console.log('  ╚══════════════════════════════════════╝');
   console.log('');
+
+  // Recover any escalations that occurred while server was down
+  escalation.recoverEscalations();
 });
 
 // -------------------------------------------

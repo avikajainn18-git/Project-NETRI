@@ -20,6 +20,7 @@ const {
   emitAlertResolved,
   emitAlertCancelled,
 } = require('../services/socket');
+const { startEscalation, cancelEscalation } = require('../services/escalation');
 
 const router = Router();
 
@@ -142,6 +143,9 @@ router.post('/', (req, res) => {
 
     // Broadcast to connected dashboard clients
     emitAlertCreated(alert);
+
+    // Start automatic escalation timer
+    startEscalation(alert.alert_id);
 
     return res.status(201).json({ alert });
   } catch (err) {
@@ -357,6 +361,9 @@ router.patch('/:alertId/resolve', (req, res) => {
     // Broadcast to connected dashboard clients
     emitAlertResolved(updated);
 
+    // Stop escalation for resolved incident
+    cancelEscalation(alertId);
+
     return res.json({ alert: updated });
   } catch (err) {
     console.error('[Alerts] Resolve error:', err.message);
@@ -401,6 +408,9 @@ router.patch('/:alertId/cancel', (req, res) => {
 
     // Broadcast to connected dashboard clients
     emitAlertCancelled(updated);
+
+    // Stop escalation for cancelled incident
+    cancelEscalation(alertId);
 
     return res.json({ alert: updated });
   } catch (err) {

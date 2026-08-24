@@ -14,6 +14,7 @@ var selectedCaseId = null;
 var markers = {};
 var socket = null;
 var evidenceCache = {};
+var timelineCache = {};
 var audioPlayer = null;
 var currentAudioEvidenceId = null;
 
@@ -62,6 +63,9 @@ function buildHistory(alert) {
   if (alert.latitude != null && alert.longitude != null) {
     steps.push({ status: "Location Captured", time: formatTime(alert.created_at) });
   }
+  if (alert.severity && alert.severity !== "MEDIUM") {
+    steps.push({ status: "Severity: " + alert.severity, time: "\u2014" });
+  }
   if (alert.status === "ACKNOWLEDGED" || alert.status === "RESOLVED" || alert.status === "ESCALATED") {
     steps.push({ status: "Acknowledged", time: formatTime(alert.acknowledged_at) });
   }
@@ -89,6 +93,8 @@ function backendToDashboard(alert) {
   return {
     id: alert.alert_id,
     status: mapStatus(alert.status),
+    severity: alert.severity || "MEDIUM",
+    userResponded: false,
     location: formatCoordinates(alert.latitude, alert.longitude),
     lat: alert.latitude || 28.68,
     lng: alert.longitude || 77.17,
@@ -119,7 +125,16 @@ async function loadAlertsFromAPI() {
       selectedCaseId = alerts[0].id;
     }
     renderAll();
-    if (selectedCaseId) fetchEvidenceForAlert(selectedCaseId);
+    if (selectedCaseId) {
+      fetchEvidenceForAlert(selectedCaseId);
+      fetchTimelineForAlert(selectedCaseId).then(function () { renderAll(); });
+    }
+    // Fetch timelines for all alerts to detect user response state
+    alerts.forEach(function (a) {
+      fetchTimelineForAlert(a.id).then(function () {
+        if (a.id === selectedCaseId) renderAll();
+      });
+    });
     console.log("[Dashboard] Loaded " + alerts.length + " alerts from API");
   } catch (err) {
     console.error("[Dashboard] Failed to load alerts:", err.message);
@@ -179,17 +194,67 @@ function connectSocket() {
       fetchEvidenceForAlert(data.alert_id, true);
     }
   });
+
+  socket.on("alert:severity-changed", function (data) {
+    console.log("[Dashboard] alert:severity-changed - " + data.alert_id + " " + data.previous_severity + " -> " + data.severity);
+    for (var i = 0; i < alerts.length; i++) {
+      if (alerts[i].id === data.alert_id) {
+        alerts[i].severity = data.severity;
+        break;
+      }
+    }
+    renderAll();
+  });
+
+  socket.on("alert:escalated", function (data) {
+    console.log("[Dashboard] alert:escalated - " + data.alert.alert_id);
+    updateAlertFromEvent(data.alert);
+  });
+
+  socket.on("alert:user-response", function (data) {
+    console.log("[Dashboard] alert:user-response - " + data.response.alert_id);
+    for (var i = 0; i < alerts.length; i++) {
+      if (alerts[i].id === data.response.alert_id) {
+        alerts[i].userResponded = true;
+        break;
+      }
+    }
+    delete timelineCache[data.response.alert_id];
+    renderAll();
+  });
 }
 
 function updateAlertFromEvent(backendAlert) {
   var updated = backendToDashboard(backendAlert);
   for (var i = 0; i < alerts.length; i++) {
     if (alerts[i].id === updated.id) {
+      updated.userResponded = alerts[i].userResponded;
       alerts[i] = updated;
       break;
     }
   }
   renderAll();
+}
+
+/* =========================================================
+   6b. TIMELINE - fetch to detect user response
+   ========================================================= */
+function fetchTimelineForAlert(alertId) {
+  if (!alertId || timelineCache[alertId]) return Promise.resolve();
+  return fetch(CONFIG.API_BASE_URL + "/api/alerts/" + encodeURIComponent(alertId) + "/timeline")
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var events = data.events || [];
+      var responded = events.some(function (e) { return e.event_type === "USER_RESPONDED"; });
+      timelineCache[alertId] = events;
+      for (var i = 0; i < alerts.length; i++) {
+        if (alerts[i].id === alertId) {
+          alerts[i].userResponded = responded;
+          break;
+        }
+      }
+    })
+    .catch(function () {});
 }
 
 /* =========================================================
@@ -203,7 +268,8 @@ function renderMarkers() {
 
   alerts.forEach(function (alert) {
     var color = "#c9a227";
-    if (alert.status === "Escalated") color = "#e5484d";
+    if (alert.severity === "CRITICAL") color = "#e5484d";
+    else if (alert.severity === "HIGH") color = "#d28a32";
     if (alert.status === "Resolved") color = "#4caf50";
     if (alert.status === "Cancelled") color = "#6c6270";
     if (alert.status === "Acknowledged") color = "#b9aec2";
@@ -237,9 +303,14 @@ function renderCaseList() {
   alerts.forEach(function (alert) {
     var row = document.createElement("tr");
     row.className = alert.id === selectedCaseId ? "selected-row" : "";
+    var responseHtml = alert.userResponded
+      ? "<span class='response-received'>\u2713 RECEIVED</span>"
+      : "<span class='response-none'>NO RESPONSE</span>";
     row.innerHTML =
       "<td>" + alert.id.substring(0, 8) + "\u2026</td>" +
+      "<td><span class='severity-chip severity-" + alert.severity + "'>" + alert.severity + "</span></td>" +
       "<td><span class='status-chip status-" + alert.status + "'>" + alert.status + "</span></td>" +
+      "<td>" + responseHtml + "</td>" +
       "<td>" + alert.location + "</td>" +
       "<td>" + alert.time + "</td>";
 
@@ -264,6 +335,7 @@ function selectCase(id) {
   renderEvidence();
   renderHistory();
   fetchEvidenceForAlert(id);
+  fetchTimelineForAlert(id).then(function () { renderAll(); });
   centerMapOnSelectedCase();
 }
 
@@ -303,15 +375,24 @@ function renderSelectedCase() {
 
   title.textContent = "Case " + alert.id.substring(0, 8) + "\u2026";
 
+  var escalationHtml = "";
+  if (alert.status === "Escalated" && alert.severity === "CRITICAL") {
+    escalationHtml = "<div style='margin-bottom:12px'><span class='escalation-badge'>ESCALATED \u2022 CRITICAL</span></div>";
+  }
+  var responseHtml = alert.userResponded
+    ? "<span class='response-received'>\u2713 RECEIVED</span>"
+    : "<span class='response-none'>\u2717 NO RESPONSE</span>";
   body.innerHTML =
+    escalationHtml +
     "<div class='incident-grid'>" +
+      field("Severity", "<span class='severity-chip severity-" + alert.severity + "'>" + alert.severity + "</span>") +
       field("Status", "<span class='status-chip status-" + alert.status + "'>" + alert.status + "</span>") +
+      field("User Response", responseHtml) +
       field("Device", alert.deviceId) +
       field("Signal", alert.signalStatus) +
       field("Battery", alert.batteryLevel != null ? alert.batteryLevel + "%" : "Unknown") +
       field("Location", alert.location) +
       field("Time", alert.time) +
-      field("Coordinates", alert.lat + ", " + alert.lng) +
     "</div>";
 
   function field(label, value) {

@@ -96,6 +96,26 @@ function emitAlertEscalated(alert) {
   console.log(`[Socket.IO] Emitted alert:escalated — ${alert.alert_id}`);
 }
 
+/**
+ * Emit when a user responds to an alert.
+ * Event:   "alert:user-response"
+ * Payload: { response: { alert_id, response_type, responded_at, event_id } }
+ */
+function emitAlertUserResponse(response) {
+  emit('alert:user-response', { response });
+  console.log(`[Socket.IO] Emitted alert:user-response — alert ${response.alert_id}`);
+}
+
+/**
+ * Emit when an alert's severity changes.
+ * Event:   "alert:severity-changed"
+ * Payload: { alert_id, previous_severity, severity, reason, changed_at }
+ */
+function emitAlertSeverityChanged(data) {
+  emit('alert:severity-changed', data);
+  console.log(`[Socket.IO] Emitted alert:severity-changed — ${data.alert_id} ${data.previous_severity}→${data.severity}`);
+}
+
 // -------------------------------------------
 //  Exports
 // -------------------------------------------
@@ -108,4 +128,6 @@ module.exports = {
   emitAlertResolved,
   emitAlertCancelled,
   emitAlertEscalated,
+  emitAlertUserResponse,
+  emitAlertSeverityChanged,
 };

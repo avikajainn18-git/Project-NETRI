@@ -662,6 +662,94 @@ html, body {
 }
 
 /* =========================================================
+   SEVERITY CHIPS
+   ========================================================= */
+.severity-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.severity-MEDIUM {
+  background: rgba(201, 162, 74, 0.08);
+  color: #b89a5a;
+  border: 1px solid rgba(201, 162, 74, 0.25);
+}
+
+.severity-HIGH {
+  background: rgba(210, 130, 50, 0.1);
+  color: #e0a050;
+  border: 1px solid rgba(210, 130, 50, 0.3);
+}
+
+.severity-CRITICAL {
+  background: rgba(200, 55, 55, 0.12);
+  color: #e87070;
+  border: 1px solid rgba(200, 55, 55, 0.35);
+}
+
+.severity-LOW {
+  background: rgba(100, 120, 140, 0.08);
+  color: #8aa0b0;
+  border: 1px solid rgba(100, 120, 140, 0.25);
+}
+
+/* =========================================================
+   ESCALATION BADGE
+   ========================================================= */
+.escalation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-weight: 700;
+  font-size: 0.64rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: rgba(200, 55, 55, 0.12);
+  color: #e87070;
+  border: 1px solid rgba(200, 55, 55, 0.3);
+  animation: escalation-pulse 2s ease-in-out infinite;
+}
+
+.escalation-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e87070;
+}
+
+@keyframes escalation-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* =========================================================
+   RESPONSE STATE
+   ========================================================= */
+.response-received {
+  color: #6fbd7d;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.response-none {
+  color: #e0787b;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+/* =========================================================
    RESPONSIVE FALLBACK (preserved)
    ========================================================= */
 @media (max-width: 1000px) {
