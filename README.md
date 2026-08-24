@@ -65,7 +65,7 @@ The proposed production system uses **GSM/SMS-based communication**, allowing al
 
 ### Phase 2 — Production / Real Hardware
 
-* **Hardware:** ESP32 + ADXL345 accelerometer + MEMS microphone + GSM module + LiPo battery
+* **Hardware:** ESP32 + ADXL345 accelerometer + MEMS microphone + GSM/GNSS module + LiPo battery
 * **Firmware:** C/C++ (Arduino / ESP-IDF), with on-device tap and voice detection
 * **Backend:** Node.js + Express, PostgreSQL, AWS/GCP
 * **Frontend:** React web application + React Native / Flutter mobile application
