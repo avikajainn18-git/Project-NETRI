@@ -140,9 +140,9 @@ html, body {
    ========================================================= */
 .header {
   background: #100e0c;
-  padding: 16px 22px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  padding: 14px 20px;
+  border-radius: 3px;
+  margin-bottom: 16px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
@@ -206,11 +206,11 @@ html, body {
 
 .tile {
   background: #100e0c;
-  border-radius: 7px;
-  padding: 18px 19px 16px;
+  border-radius: 3px;
+  padding: 14px 16px 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  min-height: 92px;
+  min-height: 76px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -223,7 +223,7 @@ html, body {
 }
 
 .tile-value {
-  font-size: 2.4rem;
+  font-size: 1.85rem;
   font-weight: 700;
   line-height: 1;
   color: #f2ece0;
@@ -232,11 +232,11 @@ html, body {
 
 .tile-label {
   font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 0.68rem;
-  color: #7a7268;
-  margin-top: 9px;
+  font-size: 0.62rem;
+  color: #6a6358;
+  margin-top: 7px;
   text-transform: uppercase;
-  letter-spacing: 1.6px;
+  letter-spacing: 1.4px;
   font-weight: 600;
 }
 
@@ -258,17 +258,16 @@ html, body {
 .main-panel {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 16px;
   align-items: start;
 }
 
 .map-container {
   background: #0c0a08;
-  border-radius: 7px;
+  border-radius: 3px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   min-height: 440px;
 }
 
@@ -288,16 +287,15 @@ html, body {
 /* Selected Case — the primary information panel */
 .selected-case {
   background: #100e0c;
-  border-radius: 7px;
-  padding: 18px 20px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  padding: 16px 18px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .case-history {
   background: #100e0c;
-  border-radius: 7px;
-  padding: 17px 19px;
+  border-radius: 3px;
+  padding: 15px 17px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   flex: 1;
   overflow-y: auto;
@@ -346,12 +344,12 @@ html, body {
 .incident-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 18px;
-  margin-bottom: 16px;
+  gap: 10px 16px;
+  margin-bottom: 14px;
 }
 
 .incident-field {
-  font-size: 0.96rem;
+  font-size: 0.88rem;
   color: #ece5da;
   font-weight: 500;
 }
@@ -389,32 +387,32 @@ html, body {
 .recording-section h3,
 .evidence-section h3 {
   font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 700;
   color: #5c564d;
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 #recording-status {
-  font-size: 0.85rem;
-  color: #b0a698;
-  margin-bottom: 10px;
-  padding-left: 10px;
-  border-left: 2px solid rgba(201, 162, 74, 0.3);
+  font-size: 0.8rem;
+  color: #9a9088;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 2px solid rgba(201, 162, 74, 0.25);
 }
 
 .play-btn {
   width: 100%;
-  padding: 10px;
-  font-size: 0.84rem;
+  padding: 9px;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.3px;
   background: rgba(201, 162, 74, 0.05);
   color: #c9a24a;
-  border: 1px solid rgba(201, 162, 74, 0.3);
-  border-radius: 5px;
+  border: 1px solid rgba(201, 162, 74, 0.25);
+  border-radius: 2px;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
@@ -444,12 +442,12 @@ html, body {
 }
 
 #evidence-list li {
-  font-size: 0.88rem;
-  color: #c9bfb2;
-  padding: 5px 0;
+  font-size: 0.82rem;
+  color: #b0a698;
+  padding: 4px 0;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 #evidence-list li::before {
@@ -471,17 +469,17 @@ html, body {
    ========================================================= */
 .resolve-btn {
   width: 100%;
-  padding: 13px;
-  font-size: 0.9rem;
+  padding: 11px;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   background: #c9a24a;
   color: #0a0908;
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+  transition: background 0.15s ease, transform 0.08s ease;
 }
 
 .resolve-btn:hover:not(:disabled) {
@@ -508,13 +506,13 @@ html, body {
 }
 
 #history-timeline li {
-  padding: 10px 0 10px 18px;
-  border-left: 2px solid rgba(201, 162, 74, 0.25);
+  padding: 8px 0 8px 16px;
+  border-left: 1px solid rgba(201, 162, 74, 0.2);
   margin-left: 4px;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 500;
   position: relative;
-  color: #c9bfb2;
+  color: #b0a698;
 }
 
 #history-timeline li:last-child {
@@ -524,10 +522,10 @@ html, body {
 #history-timeline li::before {
   content: '';
   position: absolute;
-  left: -5px;
-  top: 14px;
-  width: 8px;
-  height: 8px;
+  left: -4px;
+  top: 12px;
+  width: 7px;
+  height: 7px;
   background: #c9a24a;
   border-radius: 50%;
   box-shadow: 0 0 0 3px #100e0c;
@@ -548,8 +546,8 @@ html, body {
    ========================================================= */
 .case-list-section {
   background: #100e0c;
-  border-radius: 7px;
-  padding: 18px 19px 8px;
+  border-radius: 3px;
+  padding: 16px 17px 6px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -561,18 +559,18 @@ html, body {
 .case-list th {
   text-align: left;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 0.64rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: #5c564d;
-  padding: 0 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-transform: uppercase;
-  letter-spacing: 1.3px;
+  letter-spacing: 1.2px;
 }
 
 .case-list td {
-  padding: 12px 10px;
-  font-size: 0.92rem;
+  padding: 10px 8px;
+  font-size: 0.85rem;
   font-weight: 500;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   cursor: pointer;
@@ -604,11 +602,11 @@ html, body {
    ========================================================= */
 .status-chip {
   display: inline-block;
-  padding: 3px 10px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 2px;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   font-weight: 700;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
@@ -666,11 +664,11 @@ html, body {
    ========================================================= */
 .severity-chip {
   display: inline-block;
-  padding: 3px 10px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 2px;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   font-weight: 700;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
@@ -706,11 +704,11 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 3px 9px;
+  border-radius: 2px;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   font-weight: 700;
-  font-size: 0.64rem;
+  font-size: 0.6rem;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   background: rgba(200, 55, 55, 0.12);
@@ -738,14 +736,14 @@ html, body {
 .response-received {
   color: #6fbd7d;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 600;
 }
 
 .response-none {
   color: #e0787b;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 600;
 }
 

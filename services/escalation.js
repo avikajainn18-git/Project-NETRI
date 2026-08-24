@@ -261,10 +261,9 @@ function startEscalation(alertId, createdAt) {
   } else if (elapsed < thresholds.HIGH_TO_CRITICAL_MS) {
     nextThresholdMs = thresholds.HIGH_TO_CRITICAL_MS - elapsed;
   }
-  // If already past all thresholds, evaluate immediately
+  // If already past all thresholds, evaluate on next tick (avoid synchronous recursion)
   else {
-    evaluateAndApply(alertId);
-    return;
+    nextThresholdMs = 0;
   }
 
   const timerId = setTimeout(() => {

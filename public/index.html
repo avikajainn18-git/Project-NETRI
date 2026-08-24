@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N.E.T.R.I.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-deep: #0c0b0d;
+        --bg-panel: #171419;
+        --bg-hover: #1d1820;
+        --border: #30272e;
+        --text-primary: #eee7df;
+        --text-secondary: #b7aeb0;
+        --text-muted: #777075;
+        --accent-clay: #9b7182;
+        --accent-clay-bright: #b88498;
+        --accent-clay-soft: rgba(155, 113, 130, 0.14);
+        --accent-green: #7f9a82;
+        --accent-green-soft: rgba(127, 154, 130, 0.12);
+        --border-accent: rgba(155, 113, 130, 0.42);
+        --mono: 'DM Mono', 'Consolas', monospace;
+        --sans: 'Inter', 'Segoe UI', Arial, sans-serif;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        height: 100%;
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 48px 32px;
+      }
+
+      /* ---- HEADER ---- */
+      .portal-header {
+        text-align: center;
+        margin-bottom: 44px;
+        width: 100%;
+        max-width: 1100px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .brand-symbol {
+        width: 42px;
+        height: 42px;
+        border: 1.5px solid var(--accent-clay);
+        border-radius: 4px;
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        color: var(--accent-clay-bright);
+        line-height: 1;
+      }
+
+      .brand-text { text-align: left; }
+
+      .brand-text strong {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        color: var(--text-primary);
+      }
+
+      .brand-text span {
+        display: block;
+        font: 8px var(--mono);
+        letter-spacing: 0.18em;
+        color: var(--text-muted);
+        margin-top: 3px;
+      }
+
+      .portal-kicker {
+        font: 9px var(--mono);
+        letter-spacing: 0.12em;
+        color: var(--accent-clay);
+        opacity: 0.6;
+        margin-top: 14px;
+      }
+
+      .portal-subtitle {
+        font-size: 15px;
+        color: var(--text-secondary);
+        margin-top: 12px;
+        line-height: 1.7;
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* ---- CARDS GRID ---- */
+      .portal-cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        max-width: 1100px;
+        width: 100%;
+      }
+
+      /* ---- CARD ---- */
+      .portal-card {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 36px 32px 32px;
+        min-height: 260px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .portal-card:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+      }
+
+      .portal-card:active {
+        transform: translateY(0);
+      }
+
+      /* Subtle top accent line */
+      .portal-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border);
+        transition: background 0.2s;
+      }
+
+      .portal-card:hover::before {
+        background: var(--accent-clay);
+      }
+
+      /* Differentiation: dashboard = sage, simulator = mauve */
+      .portal-card--dash::before { background: var(--accent-green); opacity: 0.25; }
+      .portal-card--dash:hover::before { opacity: 0.6; }
+      .portal-card--sim::before { background: var(--accent-clay); opacity: 0.25; }
+      .portal-card--sim:hover::before { opacity: 0.6; }
+
+      .card-label {
+        font: 9px var(--mono);
+        letter-spacing: 0.14em;
+        color: var(--accent-clay);
+        margin-bottom: 14px;
+      }
+
+      .card-title {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+      }
+
+      .card-desc {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+        flex: 1;
+        margin-bottom: 28px;
+      }
+
+      .card-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font: 10px var(--mono);
+        letter-spacing: 0.06em;
+        color: var(--accent-clay);
+        transition: color 0.15s;
+      }
+
+      .portal-card:hover .card-cta { color: var(--text-primary); }
+
+      .card-cta-arrow {
+        display: inline-block;
+        transition: transform 0.15s;
+      }
+
+      .portal-card:hover .card-cta-arrow { transform: translateX(4px); }
+
+      /* ---- FOOTER ---- */
+      .portal-footer {
+        margin-top: 44px;
+        text-align: center;
+        font: 8px var(--mono);
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+      }
+
+      .portal-footer b {
+        color: var(--text-secondary);
+        font-weight: 400;
+      }
+
+      /* ---- RESPONSIVE ---- */
+      @media (max-width: 700px) {
+        body { padding: 36px 20px; }
+        .portal-cards {
+          grid-template-columns: 1fr;
+          max-width: 440px;
+        }
+        .portal-card { min-height: 210px; padding: 28px 24px 24px; }
+        .card-title { font-size: 26px; }
+        .card-desc { font-size: 14px; }
+        .portal-header { margin-bottom: 32px; }
+        .portal-footer { margin-top: 36px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="portal-header">
+      <div class="brand">
+        <div class="brand-symbol">&#9671;</div>
+        <div class="brand-text">
+          <strong>N.E.T.R.I.</strong>
+          <span>Network for Emergency Threat Response and Intervention</span>
+        </div>
+      </div>
+      <div class="portal-kicker">PROTOTYPE 1.0</div>
+      <p class="portal-subtitle">
+        A discreet safety system that preserves evidence the moment it matters.
+      </p>
+    </header>
+
+    <div class="portal-cards">
+      <a
+        href="/dashboard.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="portal-card portal-card--dash"
+      >
+        <div class="card-label">COMMAND CENTER</div>
+        <div class="card-title">Dashboard</div>
+        <p class="card-desc">
+          Monitor active incidents, location, evidence, response state and
+          escalation.
+        </p>
+        <span class="card-cta"
+          >OPEN DASHBOARD <span class="card-cta-arrow">&rarr;</span></span
+        >
+      </a>
+
+      <a
+        href="/simulator.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="portal-card portal-card--sim"
+      >
+        <div class="card-label">SAFE COMPACT</div>
+        <div class="card-title">Simulator</div>
+        <p class="card-desc">
+          Demonstrate emergency activation, real GPS, evidence capture and user
+          response.
+        </p>
+        <span class="card-cta"
+          >OPEN SIMULATOR <span class="card-cta-arrow">&rarr;</span></span
+        >
+      </a>
+    </div>
+
+    <footer class="portal-footer">
+      <b>SAFE RESPONSE</b> &middot; SIMULATION ONLY &middot; INTENTIONAL USER
+      ACTIVATION
+    </footer>
+  </body>
+</html>
