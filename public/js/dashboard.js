@@ -86,6 +86,12 @@ function buildEvidence(alert) {
 }
 
 function backendToDashboard(alert) {
+  var trustedContacts = [];
+  try {
+    trustedContacts = alert.trusted_contacts ? JSON.parse(alert.trusted_contacts) : [];
+  } catch (e) {
+    trustedContacts = [];
+  }
   return {
     id: alert.alert_id,
     status: mapStatus(alert.status),
@@ -101,10 +107,26 @@ function backendToDashboard(alert) {
     acknowledgedAt: alert.acknowledged_at,
     resolvedAt: alert.resolved_at,
     backendStatus: alert.status,
+    trustedContacts: trustedContacts,
     history: buildHistory(alert),
     evidence: buildEvidence(alert),
     recording: { available: false }
   };
+}
+
+function renderTrustedContacts() {
+  var tbody = document.getElementById("trusted-contacts-body");
+  if (!tbody) return;
+  var alert = getSelectedCase();
+  var contacts = alert ? alert.trustedContacts : [];
+  tbody.innerHTML = contacts.length ? contacts.map(function (contact) {
+    return "<tr>" +
+      "<td>" + contact.name + "</td>" +
+      "<td>" + (contact.relation || "Trusted contact") + "</td>" +
+      "<td>" + contact.phone + "</td>" +
+      "<td><span class='status-chip status-Notified'>SMS (Demo) Sent</span></td>" +
+      "</tr>";
+  }).join("") : "<tr><td colspan='4'>No trusted contacts received for the selected alert.</td></tr>";
 }
 
 /* =========================================================
@@ -652,6 +674,7 @@ function renderAll() {
   renderEvidence();
   renderHistory();
   renderAnalytics();
+  renderTrustedContacts();
 }
 
 /* =========================================================
