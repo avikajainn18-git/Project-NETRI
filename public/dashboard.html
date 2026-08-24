@@ -1,178 +1,193 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Safety Response Dashboard</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="css/dashboard.css">
-</head>
-<body>
-
-<div class="app-shell">
-
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-mark">SR</span>
-      <span class="brand-text">SAFE<br>RESPONSE</span>
-    </div>
-    <nav class="sidebar-nav">
-      <button class="nav-item active" type="button" data-view="command-center">
-        <span class="nav-dot"></span>Command Center
-      </button>
-      <button class="nav-item" type="button" data-view="evidence-vault">
-        <span class="nav-dot"></span>Evidence Vault
-      </button>
-      <button class="nav-item" type="button" data-view="trusted-contacts">
-        <span class="nav-dot"></span>Trusted Contacts
-      </button>
-    </nav>
-    <div class="sidebar-footer">Operations Console</div>
-  </aside>
-
-  <main class="main-content">
-
-    <header class="header">
-      <h1>Safety Response Dashboard</h1>
-      <span class="header-tag" id="view-tag">Command Center</span>
-    </header>
-
-    <!-- ================= COMMAND CENTER VIEW ================= -->
-    <div class="view active" id="view-command-center">
-
-      <section class="analytics">
-        <div class="tile" id="tile-active">
-          <div class="tile-value" id="stat-active">0</div>
-          <div class="tile-label">Active</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Safety Response Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="css/dashboard.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark">SR</span>
+          <span class="brand-text">SAFE<br />RESPONSE</span>
         </div>
-        <div class="tile" id="tile-resolved">
-          <div class="tile-value" id="stat-resolved">0</div>
-          <div class="tile-label">Resolved</div>
-        </div>
-        <div class="tile" id="tile-escalated">
-          <div class="tile-value" id="stat-escalated">0</div>
-          <div class="tile-label">Escalated</div>
-        </div>
-        <div class="tile" id="tile-response">
-          <div class="tile-value" id="stat-response">0m</div>
-          <div class="tile-label">Avg Response</div>
-        </div>
-      </section>
+        <nav class="sidebar-nav">
+          <button
+            class="nav-item active"
+            type="button"
+            data-view="command-center"
+          >
+            <span class="nav-dot"></span>Command Center
+          </button>
+          <button class="nav-item" type="button" data-view="evidence-vault">
+            <span class="nav-dot"></span>Evidence Vault
+          </button>
+          <button class="nav-item" type="button" data-view="trusted-contacts">
+            <span class="nav-dot"></span>Trusted Contacts
+          </button>
+        </nav>
+        <div class="sidebar-footer">Operations Console</div>
+      </aside>
 
-      <section class="main-panel">
-        <div class="map-container">
-          <div id="map"></div>
-        </div>
+      <main class="main-content">
+        <header class="header">
+          <h1>Safety Response Dashboard</h1>
+          <span class="header-tag" id="view-tag">Command Center</span>
+        </header>
 
-        <div class="detail-container">
-          <div class="selected-case" id="selected-case">
-            <h2 id="selected-case-title">Selected Case</h2>
-            <div id="selected-case-body"></div>
+        <!-- ================= COMMAND CENTER VIEW ================= -->
+        <div class="view active" id="view-command-center">
+          <section class="analytics">
+            <div class="tile" id="tile-active">
+              <div class="tile-value" id="stat-active">0</div>
+              <div class="tile-label">Active</div>
+            </div>
+            <div class="tile" id="tile-resolved">
+              <div class="tile-value" id="stat-resolved">0</div>
+              <div class="tile-label">Resolved</div>
+            </div>
+            <div class="tile" id="tile-escalated">
+              <div class="tile-value" id="stat-escalated">0</div>
+              <div class="tile-label">Escalated</div>
+            </div>
+            <div class="tile" id="tile-response">
+              <div class="tile-value" id="stat-response">0m</div>
+              <div class="tile-label">Avg Response</div>
+            </div>
+          </section>
 
-            <div class="recording-section">
-              <h3>Voice Recording</h3>
-              <div id="recording-status">No recording</div>
-              <button id="play-recording-btn" class="play-btn">&#9658; Play Recording</button>
+          <section class="main-panel">
+            <div class="map-container">
+              <div id="map"></div>
             </div>
 
-            <div class="evidence-section">
-              <h3>Evidence</h3>
-              <ul id="evidence-list"></ul>
+            <div class="detail-container">
+              <div class="selected-case" id="selected-case">
+                <h2 id="selected-case-title">Selected Case</h2>
+                <div id="selected-case-body"></div>
+
+                <div class="recording-section">
+                  <h3>Voice Recording</h3>
+                  <div id="recording-status">No recording</div>
+                  <button id="play-recording-btn" class="play-btn">
+                    &#9658; Play Recording
+                  </button>
+                </div>
+
+                <div class="evidence-section">
+                  <h3>Evidence</h3>
+                  <ul id="evidence-list"></ul>
+                </div>
+
+                <button id="resolve-btn" class="resolve-btn">Resolve</button>
+              </div>
+
+              <div class="case-history">
+                <h2>Incident History</h2>
+                <ul id="history-timeline"></ul>
+              </div>
             </div>
+          </section>
 
-            <button id="resolve-btn" class="resolve-btn">Resolve</button>
-          </div>
-
-          <div class="case-history">
-            <h2>Incident History</h2>
-            <ul id="history-timeline"></ul>
-          </div>
+          <section class="case-list-section">
+            <h2>Case / Alert List</h2>
+            <table class="case-list">
+              <thead>
+                <tr>
+                  <th>Case ID</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Response</th>
+                  <th>Location</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody id="case-list-body"></tbody>
+            </table>
+          </section>
         </div>
-      </section>
 
-      <section class="case-list-section">
-        <h2>Case / Alert List</h2>
-        <table class="case-list">
-          <thead>
-            <tr>
-              <th>Case ID</th>
-              <th>Severity</th>
-              <th>Status</th>
-              <th>Response</th>
-              <th>Location</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="case-list-body"></tbody>
-        </table>
-      </section>
+        <!-- ================= EVIDENCE VAULT VIEW ================= -->
+        <div class="view" id="view-evidence-vault">
+          <section class="case-list-section">
+            <h2>Evidence Vault</h2>
+            <table class="case-list">
+              <thead>
+                <tr>
+                  <th>Case ID</th>
+                  <th>Evidence Status</th>
+                  <th>Recording</th>
+                  <th>Location Captured</th>
+                  <th>Integrity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>SIH-1042</td>
+                  <td>
+                    <span class="status-chip status-Collected">Collected</span>
+                  </td>
+                  <td>Audio</td>
+                  <td>Captured</td>
+                  <td>
+                    <span class="status-chip status-Verified">Verified</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>SIH-1041</td>
+                  <td>
+                    <span class="status-chip status-Collected">Collected</span>
+                  </td>
+                  <td>Audio</td>
+                  <td>Captured</td>
+                  <td>
+                    <span class="status-chip status-Verified">Verified</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>SIH-1039</td>
+                  <td>
+                    <span class="status-chip status-Archived">Archived</span>
+                  </td>
+                  <td>Audio</td>
+                  <td>Captured</td>
+                  <td>
+                    <span class="status-chip status-Verified">Verified</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
 
+        <!-- ================= TRUSTED CONTACTS VIEW ================= -->
+        <div class="view" id="view-trusted-contacts">
+          <section class="case-list-section">
+            <h2>Trusted Contacts</h2>
+            <table class="case-list">
+              <thead>
+                <tr>
+                  <th>Contact Name</th>
+                  <th>Relationship</th>
+                  <th>Phone</th>
+                  <th>Notification Status</th>
+                </tr>
+              </thead>
+              <tbody id="trusted-contacts-body"></tbody>
+            </table>
+          </section>
+        </div>
+      </main>
     </div>
 
-    <!-- ================= EVIDENCE VAULT VIEW ================= -->
-    <div class="view" id="view-evidence-vault">
-      <section class="case-list-section">
-        <h2>Evidence Vault</h2>
-        <table class="case-list">
-          <thead>
-            <tr>
-              <th>Case ID</th>
-              <th>Evidence Status</th>
-              <th>Recording</th>
-              <th>Location Captured</th>
-              <th>Integrity</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>SIH-1042</td>
-              <td><span class="status-chip status-Collected">Collected</span></td>
-              <td>Audio</td>
-              <td>Captured</td>
-              <td><span class="status-chip status-Verified">Verified</span></td>
-            </tr>
-            <tr>
-              <td>SIH-1041</td>
-              <td><span class="status-chip status-Collected">Collected</span></td>
-              <td>Audio Only</td>
-              <td>Captured</td>
-              <td><span class="status-chip status-Verified">Verified</span></td>
-            </tr>
-            <tr>
-              <td>SIH-1039</td>
-              <td><span class="status-chip status-Archived">Archived</span></td>
-              <td>Audio</td>
-              <td>Captured</td>
-              <td><span class="status-chip status-Verified">Verified</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-    </div>
-
-    <!-- ================= TRUSTED CONTACTS VIEW ================= -->
-    <div class="view" id="view-trusted-contacts">
-      <section class="case-list-section">
-        <h2>Trusted Contacts</h2>
-        <table class="case-list">
-          <thead>
-            <tr>
-              <th>Contact Name</th>
-              <th>Relationship</th>
-              <th>Phone</th>
-              <th>Notification Status</th>
-            </tr>
-          </thead>
-          <tbody id="trusted-contacts-body"></tbody>
-        </table>
-      </section>
-    </div>
-
-  </main>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="/vendor/socket.io.min.js"></script>
-<script src="js/dashboard.js"></script>
-</body>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/vendor/socket.io.min.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
 </html>
