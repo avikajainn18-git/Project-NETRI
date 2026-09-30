@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "author": "NETRI Phase 1 — Virtual Hardware (approved BOM only, RULES.md §8)",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -100,
+      "left": 200,
+      "attrs": { "color": "red", "label": "SOS" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_status",
+      "top": -80,
+      "left": -100,
+      "attrs": { "color": "green", "label": "STATUS" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_alert",
+      "top": 40,
+      "left": -100,
+      "attrs": { "color": "red", "label": "ALERT" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_status",
+      "top": -60,
+      "left": -20,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_alert",
+      "top": 60,
+      "left": -20,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "btn1:1.l", "esp:D25", "green", [] ],
+    [ "btn1:2.l", "esp:GND.1", "black", [] ],
+    [ "led_status:A", "esp:D26", "green", [] ],
+    [ "led_status:C", "r_status:1", "green", [] ],
+    [ "r_status:2", "esp:GND.1", "black", [] ],
+    [ "led_alert:A", "esp:D27", "red", [] ],
+    [ "led_alert:C", "r_alert:1", "red", [] ],
+    [ "r_alert:2", "esp:GND.1", "black", [] ]
+  ]
+}

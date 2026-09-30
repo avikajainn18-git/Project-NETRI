@@ -1,0 +1,10 @@
+# Wokwi project definition for NETRI Phase 1 (Virtual Hardware).
+#
+# Build the firmware with PlatformIO (see firmware/platformio.ini) — the
+# compiled artifacts land in .pio/build/esp32dev/ — then run the simulation:
+#   https://wokwi.com/projects/new/esp32  →  open this folder with the
+#   Wokwi VS Code extension, or paste diagram.json + sketch at wokwi.com.
+[wokwi]
+version = 1
+elf = ".pio/build/esp32dev/firmware.elf"
+firmware = ".pio/build/esp32dev/firmware.bin"
