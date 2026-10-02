@@ -1,0 +1,20 @@
+# ── Tool / agent state ────────────────────────────────────────────────────────
+.freebuff/
+
+# ── Editor / machine-specific config ─────────────────────────────────────────
+.vscode/
+
+# ── Compiled binaries (host-side test executables, etc.) ─────────────────────
+*.exe
+*.o
+*.obj
+
+# ── Dependency / build artifacts (per-project .gitignore files also apply) ───
+node_modules/
+dist/
+.pio/
+*.local
+
+# ── OS cruft ─────────────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
