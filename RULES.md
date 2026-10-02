@@ -169,6 +169,7 @@ netri/
 
 - **Stage:** Phase 1 (Virtual Hardware) implemented at the code level: approved-BOM Wokwi circuit (`firmware/diagram.json`), ESP32 firmware (`firmware/sketch/sketch.ino` + `firmware/include/netri/` headers), PlatformIO config, passing host-side logic tests (`firmware/test/`), and a **successful PlatformIO esp32dev build** (`firmware/.pio/build/esp32dev/firmware.bin`). First Wokwi simulation run pending.
 - **Phase 2 (Hardware Simulator) implemented at the code level:** the user-facing device simulator exists under `simulator/` (Vite + React + TypeScript — the §6 PROPOSED per-module stack, used de facto pending owner ratification) and reproduces the Phase-1 device behavior 1:1: green operational by default, 2 s continuous hold to trigger, emergency LATCHES (release does not clear), RESET/power-cycle clears, device ID NETRI-001, console mirroring the firmware serial lines, and an `EMERGENCY_TRIGGERED` event seam where the Phase-3 transport will subscribe. Cutaway visualization of the approved BOM only; no networking/backend/Phase-3 functionality. Typecheck + production build pass; core interactions verified in-browser (see §11 Task 9).
+- **Shared contracts updated:** `EmergencyContact` schema (contactId, name, relationship, phoneNumber) added as a new contract module. `Employee` schema updated with `emergencyContacts: EmergencyContact[]` (zero or more, defaults to empty array). Both schemas exported through the contracts index.
 - **Implemented so far:** RULES.md + `firmware/` (Phase 1 only). No gateway, backend, database, dashboard, transport (boundary stub only), or dependencies beyond the toolchain; nothing committed.
 - **Approvals in force:** BOM APPROVED (§8); D1–D6 APPROVED (§14); 2 s hold threshold, emergency LATCH (release does not re-arm or clear; RESOLVE/restart clears), and green-solid operational indication APPROVED (owner directives, §8/§14). No PENDING decisions remain.
 - **Verified environment facts (APPROVED):** Wokwi supports ESP32 simulation with WiFi networking (free `Wokwi-GUEST`; the separate IoT Gateway tool bridges localhost); it does **not** support BLE passthrough.
@@ -235,6 +236,11 @@ netri/
 | Responder availability: backend-authoritative via lifecycle events, no frontend overrides |
 | Cancellation: restricted to org actors via backend; no end-user cancellation |
 | Authentication / Identity implementation: DEFERRED |
+| EmergencyContact shared contract: `contactId`, `name`, `relationship`, `phoneNumber` — Zod schema + inferred TypeScript type in `contracts/src/contact.ts` |
+| Employee contract updated with `emergencyContacts: EmergencyContact[]` — zero or more contacts attached to an employee, defaults to empty array; all existing fields preserved |
+| MVP Family-Notification Rule: when the backend creates an incident in `ACTIVE` state, it initiates notification to all configured emergency contacts for the affected employee. Notification handling is backend-owned. Frontends (dashboard, emergency console) do not directly send notifications. The NETRI device does not send family notifications. Notification channel/provider implementation is deferred. Retry, escalation, delivery-policy details are deferred. No external notification integrations are added now. No notification-status fields are added unless already required by the existing architecture |
+| Organization Dashboard: may later display employee emergency contacts and support authorized management of contact data when implemented; never directly sends notifications |
+| Emergency Console: may later display relevant family-notification information, but notification delivery remains backend-owned |
 
 ### PROPOSED (non-binding agent recommendations)
 

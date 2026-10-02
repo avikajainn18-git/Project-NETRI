@@ -1,3 +1,4 @@
+export * from './contact.js';
 export * from './enums.js';
 export * from './employee.js';
 export * from './responder.js';
