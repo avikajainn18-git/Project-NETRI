@@ -64,9 +64,9 @@ SMARTPHONE / GATEWAY (receives device events, relays to backend)
       ↓  HTTP / WebSocket
 BACKEND (incident engine, database)
       ↓  Socket.IO (real-time)
-ORGANIZATION DASHBOARD (responders act here)
+EMERGENCY CONSOLE (responders) & ORG DASHBOARD (admins)
       ↓
-DESIGNATED RESPONSE PERSONNEL
+DESIGNATED RESPONSE PERSONNEL & ADMINISTRATORS
 ```
 
 The smartphone is conceptually the **gateway** between the NETRI device and the backend.
@@ -79,11 +79,12 @@ The smartphone is conceptually the **gateway** between the NETRI device and the 
 | `simulator/` | User-facing virtual NETRI device: look, trigger interaction, state, feedback | Vite + React + TS |
 | `gateway/` | Smartphone stand-in: receives device events over simulated BLE, authenticates as the organization's phone, relays to backend | Node + TS |
 | `backend/` | Incident engine: create/dedup/persist, severity, escalation, ack/resolve/cancel; REST + Socket.IO | Node + Express + SQLite + Socket.IO |
-| `dashboard/` | Responder console: live incidents, timeline, responder actions | Vite + React + TS + Socket.IO client |
+| `emergency/` | Emergency Dept. responder console: live incidents, timeline, responder actions (ack/resolve) | Vite + React + TS + Socket.IO client |
+| `dashboard/` | Organization oversight/administration: admin overrides, cancellation, system overview | Vite + React + TS + Socket.IO client |
 | `contracts/` | Shared event/API/message schemas — single source of truth across modules | TS types + Zod (PROPOSED) |
 | `config/` | Escalation thresholds, org settings, device registry, ports | JSON |
 
-**Hard rule:** no module imports another module's internals; all boundaries cross through `contracts/` (runtime-validated). Firmware keeps its transport behind a single abstraction so swapping simulated BLE for real BLE in the physical build touches one module.
+**Hard rule:** no module imports another module's internals; all boundaries cross through `contracts/` (runtime-validated). Both `emergency/` and `dashboard/` communicate ONLY through the backend; they never communicate directly. Firmware keeps its transport behind a single abstraction so swapping simulated BLE for real BLE in the physical build touches one module.
 
 **PROPOSED target repository layout (NOT YET IMPLEMENTED):**
 
@@ -97,7 +98,8 @@ netri/
 ├── simulator/src/            # device/ (visuals), state/, transport/
 ├── gateway/src/              # ble/ (simulated receiver), relay/, auth/
 ├── backend/src/              # server, db/, incidents/, api/, realtime/
-├── dashboard/src/            # incidents/, actions/, realtime/
+├── emergency/src/            # responder console (incidents/, actions/)
+├── dashboard/src/            # admin dashboard (oversight/, cancellation/)
 └── tests/                    # integration + e2e flow tests
 ```
 
@@ -158,7 +160,7 @@ netri/
 2. **NETRI Hardware Simulator** — polished software simulator visually representing the actual device (appearance, trigger interaction, state, connectivity, feedback).
 3. **Communication Layer** — device → (simulated) BLE → smartphone gateway → backend, with connection status.
 4. **Backend + Incident Engine** — REST API, database persistence, dedup, severity, escalation, ack/resolve/cancel, Socket.IO hub.
-5. **Organization Dashboard** — live incident list, detail, timeline, ack/resolve/cancel, real-time updates.
+5. **Frontends** — Responder Console (emergency/) & Organization Dashboard (dashboard/): live incident list, timeline, responder actions, and administration.
 6. **End-to-End Integration** — full workflow: trigger → firmware → transport → gateway → backend → dashboard → responder action → resolved incident.
 
 **Rules:** build phase-by-phase; **do not implement all six phases at once**; each phase ends at a working checkpoint before the next begins; do not create additional phases (including any "Phase 0") without explicit owner approval — shared contracts/config work may only be folded into the plan if the owner approves it.
@@ -184,6 +186,7 @@ netri/
 | Task 7 | Owner-directed PlatformIO build-path fix: `src_dir` is honored ONLY in the global `[platformio]` section (PIO team statement in the official community + observed behavior) — placing it in `[env:...]` is silently ignored, causing "Nothing to build … firmware\\src". Moved `src_dir = sketch` to `[platformio]` and added `build_flags = -Iinclude/netri` (env-valid) for the preserved header layout. `pio run -d firmware` now SUCCEEDS (esp32dev, RAM 6.6 %, Flash 20.6 %), producing `.pio/build/esp32dev/firmware.bin` + `firmware.elf` exactly as `wokwi.toml` expects. No architecture, BOM, or hardware changes |
 | Task 8 | Owner-directed Phase-1 behavior corrections: (a) Wokwi trigger was dead — `diagram.json` used `esp:25/26/27` but Wokwi renders those pins as `D25/D26/D27`; wiring fixed to `esp:D25/D26/D27` (button GPIO 25, LEDs GPIO 26/27); (b) LED indication per owner directive: green solid at boot/idle (operational, ON by default), red alert = emergency; (c) emergency LATCHED per owner directive: release no longer re-arms — `EMERGENCY` is terminal in the trigger FSM until restart/power-cycle (no RESOLVE mechanism in Phase 1); the now-unreachable `DEBOUNCE_AFTER` state was removed. Host tests updated and passing (30 trigger / 33 indicator / 11 identity checks); PlatformIO build re-verified (SUCCESS, Flash 20.6%). First Wokwi runtime verification attempt was blocked by a browser rendering stall (build + serial connected, sim engine frozen — not a firmware issue); owner performing independent manual verification |
 | Task 9 | Phase 2 Hardware Simulator implemented in `simulator/` (Vite + React + TS, §6 PROPOSED stack): pure trigger FSM mirroring `netri_trigger.h` semantics (2 s continuous hold anchored at press start, 40 ms debounce, latched EMERGENCY with release/re-press as no-ops, reset as the only Phase-2 exit), DeviceController store emitting `EMERGENCY_TRIGGERED delivered=false` at the Phase-3 seam, cutaway SVG hardware visualization of the approved BOM (ESP32 DevKit V1 with ESP-WROOM-32 shield/USB/BOOT/EN, tactile SOS trigger, green/red LED domes, 2× 220 Ω resistors with true color bands, PCB copper traces, frosted cover with LED window/SOS dimple/RESET pinhole), BOM legend, console mirroring Phase-1 serial output with device-up timestamps. Strict typecheck + production build pass; browser-verified: idle green, short press ignored, ≥2 s hold → ARMING then red latched, release keeps red, RESET restores green + fresh boot lines. No firmware changes, no networking |
+| Task 10 | Owner formally ratified Phase 4/5 data-contract architecture: Frontend split (`emergency/` vs `dashboard/`), Incident lifecycle (`ACTIVE -> ASSIGNED -> ACKNOWLEDGED -> RESOLVED`), backend-owned deterministic automatic assignment, backend-authoritative responder availability, and organizational-actor-only cancellation. Old contradictory proposals removed. |
 
 ## 12. Incident-domain requirements
 
@@ -226,6 +229,12 @@ netri/
 | Round-1 BOM APPROVED for Phase 1 — exactly the five components in §8 |
 | Button hold duration = 2 s, measured from press start (owner Phase-1 task) |
 | Emergency LATCH: after a valid ≥2 s hold the emergency latches — release does NOT re-arm or clear it, and it clears only via a future RESOLVE mechanism or, in Phase 1, restart/power-cycle (owner directive) |
+| Frontend UI split: separate `emergency/` (responder console) and `dashboard/` (org administration), communicating only through backend |
+| Incident lifecycle: `ACTIVE → ASSIGNED → ACKNOWLEDGED → RESOLVED (+ CANCELLED)` |
+| Automatic assignment: backend-authoritative, selects oldest continuously AVAILABLE responder |
+| Responder availability: backend-authoritative via lifecycle events, no frontend overrides |
+| Cancellation: restricted to org actors via backend; no end-user cancellation |
+| Authentication / Identity implementation: DEFERRED |
 
 ### PROPOSED (non-binding agent recommendations)
 
@@ -234,7 +243,7 @@ netri/
 | SQLite driver | better-sqlite3 (synchronous, zero-config) |
 | Shared contracts | Zod schemas with inferred TS types |
 | Repository shape | npm-workspaces monorepo |
-| Frontend stack | Vite + React + TS (simulator + dashboard) |
+| Frontend stack | Vite + React + TS (simulator, emergency, dashboard) |
 | Simulated-BLE receiver placement | inside the gateway module |
 | Transport details | WebSocket device→gateway; HTTP POST gateway→backend; Socket.IO acks/state |
 | Dedup mechanism | per-device debounce + device-side suppression |
