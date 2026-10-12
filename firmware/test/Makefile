@@ -3,7 +3,7 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -Werror -I../include -I../include/netri -I.
 
-TESTS = test_trigger_fsm test_indicators
+TESTS = test_trigger_fsm test_indicators test_netri_identity
 
 all: $(TESTS)
 

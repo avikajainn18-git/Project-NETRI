@@ -1,0 +1,25 @@
+{
+  "name": "@netri/gateway",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "NETRI standalone smartphone gateway stand-in",
+  "scripts": {
+    "dev": "node ../node_modules/tsx/dist/cli.mjs watch src/server.ts",
+    "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
+    "build": "node ../node_modules/typescript/bin/tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@netri/contracts": "file:../contracts",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.0"
+  }
+}

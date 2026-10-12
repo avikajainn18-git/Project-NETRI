@@ -4,17 +4,23 @@
 //   - Device ID: the organization's identifier for this device (D6).
 //   - Battery: UI placeholder — D2 keeps battery/power documentation-only
 //     until a future phase simulates it; shown honestly as unavailable.
-//   - Phone BLE: UI placeholder — no transport exists until Phase 3; the
-//     Connected/Disconnected value is a local simulated display state only
-//     and is not wired to any device logic or networking.
-import { useState, type JSX } from "react";
+//   - Phone gateway: the actual Round-1 simulated-BLE relay status. It reports
+//     gateway availability and delivery failures without claiming real BLE.
+import type { JSX } from "react";
+import type { GatewayStatus } from "../device/transport";
 
 interface DeviceInfoProps {
   deviceId: string;
+  gatewayStatus: GatewayStatus;
 }
 
-export function DeviceInfo({ deviceId }: DeviceInfoProps): JSX.Element {
-  const [bleSimulated, setBleSimulated] = useState(false);
+export function DeviceInfo({ deviceId, gatewayStatus }: DeviceInfoProps): JSX.Element {
+  const gatewayLabel: Record<GatewayStatus, string> = {
+    CHECKING: "Checking gateway",
+    READY: "Ready · simulated",
+    DELIVERED: "Event delivered · simulated",
+    UNAVAILABLE: "Unavailable · simulated",
+  };
 
   return (
     <div
@@ -33,24 +39,7 @@ export function DeviceInfo({ deviceId }: DeviceInfoProps): JSX.Element {
     >
       <Row label="Device ID" value={deviceId} />
       <Row label="Battery" value="Unavailable · not simulated" muted />
-      <Row
-        label="Phone BLE"
-        value={
-          <button
-            type="button"
-            onClick={() => setBleSimulated((v) => !v)}
-            title="Simulated display state only — no BLE transport exists until Phase 3"
-            style={{
-              all: "unset",
-              cursor: "pointer",
-              color: bleSimulated ? "#2f7d4f" : "#8a8f98",
-              borderBottom: "1px dashed #c8c0b2",
-            }}
-          >
-            {bleSimulated ? "Connected" : "Disconnected"} · simulated
-          </button>
-        }
-      />
+      <Row label="Phone gateway" value={gatewayLabel[gatewayStatus]} muted={gatewayStatus === "UNAVAILABLE"} />
     </div>
   );
 }

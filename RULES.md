@@ -1,7 +1,7 @@
 # NETRI — RULES.md
 
 > **THIS IS THE SINGLE AUTHORITATIVE PROJECT-CONTEXT AND GOVERNANCE FILE FOR NETRI.**
-> It is the ONLY project documentation file in this repository. No other README, docs, or governance files may exist or be created; all persistent project knowledge lives here.
+> It is the authoritative project-context and governance file in this repository. A root `README.md` is also present by explicit owner request as an operational quick-start and run guide; product decisions and persistent project truth remain here.
 > **This is a LIVING document.** It MUST be updated whenever approved project state changes — decisions, phases, implementation milestones, scope — so any new agent can reconstruct the full project direction by reading this repository alone, never chat history.
 
 **Status key used throughout this file:**
@@ -51,7 +51,7 @@
 
 **APPROVED:** Round 1 is a software-first digital prototype with a realistic virtual hardware demonstration. Goal: demonstrate that the complete system works conceptually and technically **before building the final physical hardware**. The virtual circuit should represent the intended physical electronics (intended hardware = Wokwi virtual hardware = future physical prototype).
 
-**Implementation status:** Phase 1 (Virtual Hardware) is implemented (see §8, §10); Phases 2–6 are NOT YET IMPLEMENTED — no gateway, backend, database, dashboard, or end-to-end integration exists.
+**Implementation status:** all six Round-1 phases are implemented as a runnable software-first prototype (see §10 and §11). The physical hardware and Wokwi runtime remain simulation artifacts; no production certification is implied.
 
 ## 6. Complete architecture
 
@@ -71,7 +71,7 @@ DESIGNATED RESPONSE PERSONNEL & ADMINISTRATORS
 
 The smartphone is conceptually the **gateway** between the NETRI device and the backend.
 
-**Module separation (roles APPROVED; per-module tech PROPOSED) — all NOT YET IMPLEMENTED:**
+**Module separation (roles APPROVED; implemented Round-1 stack recorded below):**
 
 | Module | Role (APPROVED) | Proposed tech |
 |---|---|---|
@@ -81,18 +81,19 @@ The smartphone is conceptually the **gateway** between the NETRI device and the 
 | `backend/` | Incident engine: create/dedup/persist, severity, escalation, ack/resolve/cancel; REST + Socket.IO | Node + Express + SQLite + Socket.IO |
 | `emergency/` | Emergency Dept. responder console: live incidents, timeline, responder actions (ack/resolve) | Vite + React + TS + Socket.IO client |
 | `dashboard/` | Organization oversight/administration: admin overrides, cancellation, system overview | Vite + React + TS + Socket.IO client |
-| `contracts/` | Shared event/API/message schemas — single source of truth across modules | TS types + Zod (PROPOSED) |
-| `config/` | Escalation thresholds, org settings, device registry, ports | JSON |
+| `contracts/` | Shared event/API/message schemas — single source of truth across modules | TS types + Zod |
+| `config/` | Escalation thresholds, org settings, device registry, ports | Environment variables + backend seed defaults (configuration file deferred) |
 
 **Hard rule:** no module imports another module's internals; all boundaries cross through `contracts/` (runtime-validated). Both `emergency/` and `dashboard/` communicate ONLY through the backend; they never communicate directly. Firmware keeps its transport behind a single abstraction so swapping simulated BLE for real BLE in the physical build touches one module.
 
-**PROPOSED target repository layout (NOT YET IMPLEMENTED):**
+**Implemented Round-1 repository layout:**
 
 ```
 netri/
-├── RULES.md                  ← this file (the only documentation)
+├── RULES.md                  ← governance and project context
+├── README.md                 ← owner-requested operational run guide
 ├── contracts/src/            # events, incidents, socket contracts
-├── config/                   # escalation.json, org.json (devices, ports)
+├── config/                   # reserved for future external configuration
 ├── firmware/                 # main.cpp, triggers/indicators/transport headers,
 │                             # diagram.json (Wokwi circuit), wokwi.toml
 ├── simulator/src/            # device/ (visuals), state/, transport/
@@ -100,7 +101,7 @@ netri/
 ├── backend/src/              # server, db/, incidents/, api/, realtime/
 ├── emergency/src/            # responder console (incidents/, actions/)
 ├── dashboard/src/            # admin dashboard (oversight/, cancellation/)
-└── tests/                    # integration + e2e flow tests
+└── data/                     # runtime SQLite database (gitignored)
 ```
 
 ## 7. Communication architecture
@@ -163,14 +164,14 @@ netri/
 5. **Frontends** — Responder Console (emergency/) & Organization Dashboard (dashboard/): live incident list, timeline, responder actions, and administration.
 6. **End-to-End Integration** — full workflow: trigger → firmware → transport → gateway → backend → dashboard → responder action → resolved incident.
 
-**Rules:** build phase-by-phase; **do not implement all six phases at once**; each phase ends at a working checkpoint before the next begins; do not create additional phases (including any "Phase 0") without explicit owner approval — shared contracts/config work may only be folded into the plan if the owner approves it.
+**Rules:** the owner has now directed completion of all six phases; the implementation was kept in the six module boundaries and each phase has a working checkpoint. Future changes must preserve those boundaries and must not create additional phases (including any "Phase 0") without explicit owner approval.
 
 ## 10. Current project state
 
-- **Stage:** Phase 1 (Virtual Hardware) implemented at the code level: approved-BOM Wokwi circuit (`firmware/diagram.json`), ESP32 firmware (`firmware/sketch/sketch.ino` + `firmware/include/netri/` headers), PlatformIO config, passing host-side logic tests (`firmware/test/`), and a **successful PlatformIO esp32dev build** (`firmware/.pio/build/esp32dev/firmware.bin`). First Wokwi simulation run pending.
-- **Phase 2 (Hardware Simulator) implemented at the code level:** the user-facing device simulator exists under `simulator/` (Vite + React + TypeScript — the §6 PROPOSED per-module stack, used de facto pending owner ratification) and reproduces the Phase-1 device behavior 1:1: green operational by default, 2 s continuous hold to trigger, emergency LATCHES (release does not clear), RESET/power-cycle clears, device ID NETRI-001, console mirroring the firmware serial lines, and an `EMERGENCY_TRIGGERED` event seam where the Phase-3 transport will subscribe. Cutaway visualization of the approved BOM only; no networking/backend/Phase-3 functionality. Typecheck + production build pass; core interactions verified in-browser (see §11 Task 9).
+- **Stage:** all six Round-1 phases implemented. Phase 1 (Virtual Hardware) includes the approved-BOM Wokwi circuit (`firmware/diagram.json`), ESP32 firmware, PlatformIO config, passing host-side logic tests, and a successful esp32dev build. First Wokwi simulation run remains a manual verification step.
+- **Phase 2/3 implemented at the code level:** the user-facing device simulator exists under `simulator/` (Vite + React + TypeScript) and reproduces the Phase-1 device behavior 1:1: green operational by default, 2 s continuous hold to trigger, emergency LATCHES (release does not clear), RESET/power-cycle clears, device ID NETRI-001, and the approved-BOM cutaway visualization. Its device-event seam now feeds the standalone gateway through a clearly labelled simulated-BLE client, with gateway health and delivery state surfaced in the simulator UI. Typecheck + production build pass; core interactions were verified in-browser (see §11 Task 9).
 - **Shared contracts updated:** `EmergencyContact` schema (contactId, name, relationship, phoneNumber) added as a new contract module. `Employee` schema updated with `emergencyContacts: EmergencyContact[]` (zero or more, defaults to empty array). Both schemas exported through the contracts index.
-- **Implemented so far:** RULES.md + `firmware/` (Phase 1 only). No gateway, backend, database, dashboard, transport (boundary stub only), or dependencies beyond the toolchain; nothing committed.
+- **Implemented so far:** `firmware/`, `simulator/`, `gateway/`, `backend/`, `dashboard/`, `emergency/`, and expanded shared `contracts/`; root workspace scripts and `README.md` run instructions are included. The gateway-to-backend path uses validated simulated-BLE events, the backend persists incidents in SQLite, and both browser consoles subscribe to Socket.IO updates.
 - **Approvals in force:** BOM APPROVED (§8); D1–D6 APPROVED (§14); 2 s hold threshold, emergency LATCH (release does not re-arm or clear; RESOLVE/restart clears), and green-solid operational indication APPROVED (owner directives, §8/§14). No PENDING decisions remain.
 - **Verified environment facts (APPROVED):** Wokwi supports ESP32 simulation with WiFi networking (free `Wokwi-GUEST`; the separate IoT Gateway tool bridges localhost); it does **not** support BLE passthrough.
 
@@ -186,8 +187,9 @@ netri/
 | Task 6 | Owner-directed corrective review of the D6 selector: original GPIO 34/35 pins are input-only and have no internal pull-ups (Espressif ESP-IDF GPIO docs), so `INPUT_PULLUP` was silently ignored there. Selector moved to GPIO 32/33 (pull-up-capable); BOM, D6 behavior, and diagram.json unchanged; 11/11 selector tests added including an input-only-pin regression guard. On-target verification remains pending |
 | Task 7 | Owner-directed PlatformIO build-path fix: `src_dir` is honored ONLY in the global `[platformio]` section (PIO team statement in the official community + observed behavior) — placing it in `[env:...]` is silently ignored, causing "Nothing to build … firmware\\src". Moved `src_dir = sketch` to `[platformio]` and added `build_flags = -Iinclude/netri` (env-valid) for the preserved header layout. `pio run -d firmware` now SUCCEEDS (esp32dev, RAM 6.6 %, Flash 20.6 %), producing `.pio/build/esp32dev/firmware.bin` + `firmware.elf` exactly as `wokwi.toml` expects. No architecture, BOM, or hardware changes |
 | Task 8 | Owner-directed Phase-1 behavior corrections: (a) Wokwi trigger was dead — `diagram.json` used `esp:25/26/27` but Wokwi renders those pins as `D25/D26/D27`; wiring fixed to `esp:D25/D26/D27` (button GPIO 25, LEDs GPIO 26/27); (b) LED indication per owner directive: green solid at boot/idle (operational, ON by default), red alert = emergency; (c) emergency LATCHED per owner directive: release no longer re-arms — `EMERGENCY` is terminal in the trigger FSM until restart/power-cycle (no RESOLVE mechanism in Phase 1); the now-unreachable `DEBOUNCE_AFTER` state was removed. Host tests updated and passing (30 trigger / 33 indicator / 11 identity checks); PlatformIO build re-verified (SUCCESS, Flash 20.6%). First Wokwi runtime verification attempt was blocked by a browser rendering stall (build + serial connected, sim engine frozen — not a firmware issue); owner performing independent manual verification |
-| Task 9 | Phase 2 Hardware Simulator implemented in `simulator/` (Vite + React + TS, §6 PROPOSED stack): pure trigger FSM mirroring `netri_trigger.h` semantics (2 s continuous hold anchored at press start, 40 ms debounce, latched EMERGENCY with release/re-press as no-ops, reset as the only Phase-2 exit), DeviceController store emitting `EMERGENCY_TRIGGERED delivered=false` at the Phase-3 seam, cutaway SVG hardware visualization of the approved BOM (ESP32 DevKit V1 with ESP-WROOM-32 shield/USB/BOOT/EN, tactile SOS trigger, green/red LED domes, 2× 220 Ω resistors with true color bands, PCB copper traces, frosted cover with LED window/SOS dimple/RESET pinhole), BOM legend, console mirroring Phase-1 serial output with device-up timestamps. Strict typecheck + production build pass; browser-verified: idle green, short press ignored, ≥2 s hold → ARMING then red latched, release keeps red, RESET restores green + fresh boot lines. No firmware changes, no networking |
+| Task 9 | Phase 2 Hardware Simulator implemented in `simulator/` (Vite + React + TS, §6 stack): pure trigger FSM mirroring `netri_trigger.h` semantics (2 s continuous hold anchored at press start, 40 ms debounce, latched EMERGENCY with release/re-press as no-ops, reset as the only Phase-2 exit), DeviceController event seam, approved-BOM cutaway visualization, BOM legend, and console mirroring Phase-1 serial output. Strict typecheck + production build pass; browser-verified: idle green, short press ignored, ≥2 s hold → ARMING then red latched, release keeps red, RESET restores green + fresh boot lines. |
 | Task 10 | Owner formally ratified Phase 4/5 data-contract architecture: Frontend split (`emergency/` vs `dashboard/`), Incident lifecycle (`ACTIVE -> ASSIGNED -> ACKNOWLEDGED -> RESOLVED`), backend-owned deterministic automatic assignment, backend-authoritative responder availability, and organizational-actor-only cancellation. Old contradictory proposals removed. |
+| Task 11 | Owner directed completion of all Round-1 stages and an overall product improvement pass. Added shared emergency-event/timeline contracts, standalone simulated-BLE gateway, Express + Socket.IO backend with built-in SQLite persistence, deduplication, assignment, escalation, and lifecycle actions, a live responder console, a functional organization dashboard, simulator-to-gateway delivery, workspace scripts, and root README run instructions. |
 
 ## 12. Incident-domain requirements
 
@@ -290,11 +292,11 @@ Never introduce or revive any of these unless the owner explicitly instructs it:
 
 ## 18. Testing / verification status
 
-**Host-side logic tests + real-toolchain build (Phase 1).** The exact modules the firmware runs are unit-tested on the host: 30/30 trigger-FSM checks (2 s threshold exactness, short-press rejection, one-shot firing, contact-bounce immunity, emergency latch — release does not re-arm and a fresh hold cannot re-fire while latched), 33/33 LED-indicator checks, and 11/11 D6 identity-selector checks — including a regression guard that fails if the selector ever returns to input-only GPIOs 34–39, which have no internal pull-ups — all passing (`firmware/test/`, plain g++, no dependencies). Additionally, the firmware **cross-compiles cleanly for esp32dev** with PlatformIO Core 6.2.0 (build SUCCESS; `firmware/.pio/build/esp32dev/firmware.bin` + `firmware.elf` present, matching `wokwi.toml`). **Not yet verified:** a Wokwi simulation run, module integration, end-to-end behavior, or physical hardware. (A first Wokwi runtime attempt was blocked by a browser rendering stall — build POST succeeded and serial connected, but the sim engine never advanced; owner manual verification pending.) The Phase-2 simulator's TypeScript FSM is not host-unit-tested (it independently re-implements the rules verified by the Phase-1 C++ suites); its behaviors were verified interactively in the browser (§11 Task 9). A future agent must not assume more has been verified than this.
+**Host-side logic tests + real-toolchain build (Phase 1).** The exact modules the firmware runs are unit-tested on the host: 30/30 trigger-FSM checks, 33/33 LED-indicator checks, and 11/11 D6 identity-selector checks — all passing (`firmware/test/`, plain g++, no dependencies). The firmware cross-compiles cleanly for esp32dev with PlatformIO Core 6.2.0. The six TypeScript workspaces typecheck and the three browser applications produce production bundles. The backend and gateway are integration-shaped and use runtime-validated contracts; manual multi-process verification is still recommended for each local environment. **Not yet verified:** a Wokwi simulation run or physical hardware. The prototype must not be represented as a certified emergency system.
 
 ## 19. Planned operational baselines (PROPOSED — for future implementation phases)
 
-- **Prerequisites (planned):** Node.js ≥ 20, npm ≥ 10 (workspaces), free Wokwi account (Phase 1), Wokwi IoT Gateway tool (only if the simulated ESP32 must reach a local backend, Phase 3+).
+- **Prerequisites:** Node.js ≥ 22.5, npm ≥ 10 (workspaces), free Wokwi account (Phase 1). The backend uses the built-in `node:sqlite`; the Wokwi IoT Gateway tool is not required for the browser simulator path.
 - **Planned default ports (all configurable in `config/`):** backend REST + Socket.IO `4000`; gateway `4001`; dashboard `5173`; simulator `5174`.
 - **Example demo flow (target of Phase 6):** trigger NETRI → ESP32 detects → event generated → gateway receives/forwards → backend creates incident → dashboard updates in real time → escalation begins if unacknowledged → responder acknowledges (escalation stops) → responder resolves.
 
@@ -311,7 +313,7 @@ Never introduce or revive any of these unless the owner explicitly instructs it:
 9. **Assume nothing undocumented exists:** never rely on functionality, files, or services not evidenced in the repository.
 10. **Never revive excluded concepts** (§15).
 11. **Minimal footprint:** read only files relevant to the requested task; keep project-level truth here, not per-line code commentary.
-12. **One documentation file:** never create READMEs, docs folders, or governance files; everything goes into this file.
+12. **Documentation:** RULES.md remains the governance and project-context source of truth. The root README.md is permitted by the owner for operational run instructions; do not add additional documentation trees.
 13. **Do not push, commit, or deploy** unless the owner explicitly asks.
 
 ## 21. Documentation update procedure

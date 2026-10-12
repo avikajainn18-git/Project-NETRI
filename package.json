@@ -1,0 +1,17 @@
+{
+  "name": "project-netri",
+  "version": "0.2.0",
+  "private": true,
+  "description": "NETRI end-to-end emergency communication prototype",
+  "workspaces": ["contracts", "backend", "gateway", "dashboard", "emergency", "simulator"],
+  "scripts": {
+    "build": "npm run build --workspace @netri/contracts && npm run build --workspace @netri/backend && npm run build --workspace @netri/gateway && npm run build --workspace @netri/dashboard && npm run build --workspace @netri/emergency && npm run build --workspace netri-simulator",
+    "typecheck": "npm run typecheck --workspace @netri/contracts && npm run typecheck --workspace @netri/backend && npm run typecheck --workspace @netri/gateway && npm run typecheck --workspace @netri/dashboard && npm run typecheck --workspace @netri/emergency && npm run typecheck --workspace netri-simulator",
+    "test:firmware": "make -C firmware/test test",
+    "dev:backend": "npm run dev --workspace @netri/backend",
+    "dev:gateway": "npm run dev --workspace @netri/gateway",
+    "dev:dashboard": "npm run dev --workspace @netri/dashboard",
+    "dev:emergency": "npm run dev --workspace @netri/emergency",
+    "dev:simulator": "npm run dev --workspace netri-simulator"
+  }
+}

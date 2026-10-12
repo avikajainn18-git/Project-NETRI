@@ -1,0 +1,18 @@
+# Tool / agent state
+.freebuff/
+
+# Local state / secrets (none created by design)
+*.local
+
+# Build artifacts
+dist/
+
+# Dependencies (also covered by root .gitignore; kept here for self-containment)
+node_modules/
+
+# Local dev server output
+dev-server.log
+
+# OS cruft
+Thumbs.db
+.DS_Store

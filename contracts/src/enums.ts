@@ -25,3 +25,6 @@ export type DeviceStatus = z.infer<typeof DeviceStatusSchema>;
 
 export const BLEStateSchema = z.enum(['CONNECTED', 'DISCONNECTED']);
 export type BLEState = z.infer<typeof BLEStateSchema>;
+
+export const NotificationStateSchema = z.enum(['NOT_CONFIGURED', 'QUEUED']);
+export type NotificationState = z.infer<typeof NotificationStateSchema>;

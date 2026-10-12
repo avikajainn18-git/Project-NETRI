@@ -100,8 +100,8 @@ export class DeviceController {
     const event = this.fsm.update(nowMs, this.pressed);
 
     if (event === TriggerEventKind.EMERGENCY_TRIGGERED) {
-      // Phase 2 boundary: events are recorded and observable locally only.
-      // Phase 3 will forward them to the simulated-BLE gateway transport.
+      // Transport stays outside the device runtime. The app subscribes to this
+      // boundary and forwards the event through the simulated-BLE gateway.
       const deviceEvent: DeviceEvent = {
         kind: "EMERGENCY_TRIGGERED",
         deviceId: this.deviceId,

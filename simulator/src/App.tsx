@@ -21,6 +21,7 @@ import {
   DeviceVisualState,
   type DeviceSnapshot,
 } from "./device/deviceController";
+import { SimulatedBleTransport, type GatewayStatus } from "./device/transport";
 
 const STATUS_TEXT = {
   [DeviceVisualState.BOOT_SELF_TEST]: "boot · self-test",
@@ -42,17 +43,31 @@ export default function App(): JSX.Element {
     controllerRef.current = new DeviceController();
   }
   const controller = controllerRef.current;
+  const transportRef = useRef<SimulatedBleTransport | null>(null);
+  if (transportRef.current === null) {
+    transportRef.current = new SimulatedBleTransport();
+  }
+  const transport = transportRef.current;
 
   const [snapshot, setSnapshot] = useState<DeviceSnapshot>(() => controller.snapshot());
+  const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus>(() => transport.currentStatus());
 
   useEffect(() => {
     const timer = window.setInterval(() => controller.tick(), 16);
     const offSnapshot = controller.onSnapshot(setSnapshot);
+    const offTransport = transport.onStatus(setGatewayStatus);
+    const transportHealthTimer = window.setInterval(() => void transport.refresh(), 5000);
+    const offEvents = controller.onEvent((event) => {
+      void transport.sendEmergency(event);
+    });
     return () => {
       window.clearInterval(timer);
       offSnapshot();
+      offTransport();
+      offEvents();
+      window.clearInterval(transportHealthTimer);
     };
-  }, [controller]);
+  }, [controller, transport]);
 
   const handleRestart = () => controller.restart();
 
@@ -62,8 +77,7 @@ export default function App(): JSX.Element {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        background:
-          "linear-gradient(180deg, #f7f5f1 0%, #eae6de 45%, #d6cfc3 100%)",
+         background: "#eeeae2",
         color: "#1f2328",
         font: "13px/1.5 ui-sans-serif, system-ui, sans-serif",
         padding: "28px 16px",
@@ -110,7 +124,7 @@ export default function App(): JSX.Element {
           {STATUS_TEXT[snapshot.visual].toUpperCase()}
         </div>
 
-        <DeviceInfo deviceId={snapshot.deviceId} />
+           <DeviceInfo deviceId={snapshot.deviceId} gatewayStatus={gatewayStatus} />
       </div>
     </div>
   );

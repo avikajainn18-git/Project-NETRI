@@ -6,6 +6,8 @@ export const DeviceStateSchema = z.object({
   deviceState: DeviceStatusSchema,
   bleState: BLEStateSchema,
   currentZone: z.string().min(1),
+  employeeId: z.string().min(1).optional(),
+  lastSeenAt: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 export type DeviceState = z.infer<typeof DeviceStateSchema>;
