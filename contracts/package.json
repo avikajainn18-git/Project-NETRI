@@ -6,8 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
+    "build": "node ../node_modules/typescript/bin/tsc"
   },
   "dependencies": {
     "zod": "^3.24.2"

@@ -22,3 +22,8 @@ export const CancelIncidentPayloadSchema = z.object({
 export type CancelIncidentPayload = z.infer<typeof CancelIncidentPayloadSchema>;
 export const CancelIncidentActionSchema = CancelIncidentPayloadSchema;
 export type CancelIncidentAction = CancelIncidentPayload;
+
+export const UpdateResponderAvailabilityPayloadSchema = z.object({
+  availabilityState: z.enum(['AVAILABLE', 'BUSY', 'OFFLINE']),
+});
+export type UpdateResponderAvailabilityPayload = z.infer<typeof UpdateResponderAvailabilityPayloadSchema>;

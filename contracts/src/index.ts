@@ -5,3 +5,4 @@ export * from './responder.js';
 export * from './device.js';
 export * from './incident.js';
 export * from './actions.js';
+export * from './events.js';
