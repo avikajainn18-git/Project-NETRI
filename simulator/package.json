@@ -2,13 +2,13 @@
   "name": "netri-simulator",
   "private": true,
   "version": "0.1.0",
-  "description": "NETRI Phase 2 — user-facing hardware simulator (no connectivity; Phase 3+ adds the transport)",
+  "description": "NETRI user-facing hardware simulator with simulated-BLE gateway delivery",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
-    "build": "npm run typecheck && vite build",
-    "preview": "vite preview"
+    "dev": "node ../node_modules/vite/bin/vite.js",
+    "typecheck": "node ../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit && node ../node_modules/typescript/bin/tsc -p tsconfig.node.json --noEmit",
+    "build": "npm run typecheck && node ../node_modules/vite/bin/vite.js build",
+    "preview": "node ../node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
     "react": "^19.1.0",
