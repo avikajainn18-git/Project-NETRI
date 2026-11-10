@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState, type JSX } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { Incident, IncidentTimelineEntry, Responder } from '@netri/contracts';
 
-const API_URL = (import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:4000').replace(/\/$/, '');
+const API_URL = (
+  import.meta.env.VITE_BACKEND_URL ??
+  (import.meta.env.DEV ? 'http://localhost:4000' : window.location.origin)
+).replace(/\/$/, '');
 const OPERATOR_ID = 'RSP-01';
 
 const PORTAL_HOME_URL = import.meta.env.DEV
