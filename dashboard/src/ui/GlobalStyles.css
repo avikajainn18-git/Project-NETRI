@@ -29,3 +29,21 @@ button { cursor: pointer; }
 
 /* Shared utility classes retained for the small reusable UI primitives. */
 .panel-stack { display: flex; flex-direction: column; gap: 16px; } .panel-grid { display: grid; gap: 18px; } .panel-grid.is-two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); } .panel { border: 1px solid #dce5dc; border-radius: 7px; background: #fbfcf9; } .panel-header, .panel-body { padding: 16px; } .btn { border: 1px solid #d4ded5; border-radius: 5px; padding: 8px 12px; } .btn-primary { color: white; background: #568259; border-color: #568259; } .btn-ghost { background: transparent; } .badge { display: inline-flex; border-radius: 99px; padding: 3px 8px; font: 10px ui-monospace, monospace; }
+.portal-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: 1px solid #d4ded5;
+  border-radius: 5px;
+  color: #58705f;
+  background: #fff;
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.portal-home-link:hover {
+  background: #f4f6f2;
+  border-color: #a9c18e;
+}   

@@ -1,0 +1,346 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  color: #202a2b;
+  background: #f4f6f2;
+
+  --page: #f4f6f2;
+  --surface: #fbfcf9;
+  --navy: #142126;
+  --navy-border: #2c3d3f;
+  --text: #202a2b;
+  --muted: #7c8984;
+  --border: #dce5dc;
+  --lime: #c5db70;
+  --green: #568259;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.portal-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 clamp(22px, 6vw, 92px);
+}
+
+.portal-header {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border-radius: 9px;
+  background: var(--lime);
+  color: var(--navy);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.brand-copy strong {
+  display: block;
+  color: var(--navy);
+  font-size: 15px;
+  letter-spacing: 0.25em;
+}
+
+.brand-copy small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.prototype-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #61765b;
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.hero {
+  padding: clamp(58px, 9vh, 100px) 0 54px;
+  max-width: 850px;
+}
+
+.eyebrow {
+  color: #74905e;
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.13em;
+  line-height: 1.7;
+}
+
+.hero h3 {
+  margin: 23px 0 20px;
+  color: var(--navy);
+  font-size: clamp(42px, 6vw, 76px);
+  font-weight: 650;
+  letter-spacing: -0.065em;
+  line-height: 1.05;
+}
+
+.hero h3 span {
+  color: var(--green);
+}
+
+.hero-description {
+  max-width: 580px;
+  color: #697873;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.interface-section {
+  padding-bottom: 70px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin: 8px 0 0;
+  color: var(--navy);
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
+.interface-count {
+  padding-bottom: 3px;
+  color: #84928a;
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.interface-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.interface-card {
+  min-height: 290px;
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.interface-card:hover {
+  transform: translateY(-4px);
+  border-color: #a9c18e;
+  box-shadow: 0 12px 28px #1421260c;
+}
+
+.interface-card:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 4px;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #e8efe2;
+  color: var(--navy);
+}
+
+.card-icon svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-number {
+  color: #98a49b;
+  font: 12px ui-monospace, monospace;
+}
+
+.card-category {
+  margin: 0 0 8px;
+  color: #74905e;
+  font: 9px ui-monospace, monospace;
+  letter-spacing: 0.13em;
+}
+
+.interface-card h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -0.035em;
+  line-height: 1.35;
+}
+
+.card-description {
+  margin: 12px 0 24px;
+  color: #77847e;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid #e5ebe3;
+  color: #4f7954;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.card-link span {
+  font-size: 17px;
+  transition: transform 160ms ease;
+}
+
+.interface-card:hover .card-link span {
+  transform: translate(2px, -2px);
+}
+
+.portal-footer {
+  margin-top: auto;
+  padding: 22px 0;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  border-top: 1px solid var(--border);
+  color: #85938d;
+  font: 9px ui-monospace, monospace;
+  letter-spacing: 0.045em;
+}
+
+@media (max-width: 900px) {
+  .interface-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .interface-card {
+    min-height: 245px;
+  }
+
+  .hero {
+    padding-top: 62px;
+  }
+}
+
+@media (max-width: 520px) {
+  .portal-shell {
+    padding: 0 18px;
+  }
+
+  .portal-header {
+    min-height: 76px;
+  }
+
+  .brand-copy small {
+    font-size: 8px;
+  }
+
+  .prototype-label {
+    font-size: 8px;
+    letter-spacing: 0.03em;
+  }
+
+  .hero {
+    padding: 53px 0 42px;
+  }
+
+  .hero h1 {
+    font-size: 46px;
+  }
+
+  .hero-description {
+    font-size: 13px;
+  }
+
+  .section-heading h2 {
+    font-size: 19px;
+  }
+
+  .interface-card {
+    padding: 21px;
+  }
+
+  .portal-footer {
+    flex-direction: column;
+    line-height: 1.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

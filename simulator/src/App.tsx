@@ -1,18 +1,3 @@
-// NETRI Phase 2 — Hardware Simulator (app shell).
-//
-// Wires the pure device layer to the React UI:
-//   - a 16 ms interval drives DeviceController.tick() (wall-clock, like a
-//     free-running MCU — keeps running even if the tab is occluded),
-//   - pointer/keyboard interactions map to physical press/release,
-//   - the hardware cutaway is the primary view; one minimal
-//     device-information strip (ID / battery / simulated BLE display state)
-//     completes the screen,
-//   - UI events call the controller only — the same seam Phase 3's transport
-//     will observe. No state lives in React besides the rendered snapshot.
-//
-// Clean product-page layout: warm stone backdrop, no glass panels —
-// the enclosure itself carries the visual weight, with the status line and
-// info strip grouped tightly beneath it.
 import { useEffect, useRef, useState, type JSX } from "react";
 import { DeviceBoard } from "./components/DeviceBoard";
 import { DeviceInfo } from "./components/DeviceInfo";
@@ -21,7 +6,10 @@ import {
   DeviceVisualState,
   type DeviceSnapshot,
 } from "./device/deviceController";
-import { SimulatedBleTransport, type GatewayStatus } from "./device/transport";
+import {
+  SimulatedBleTransport,
+  type GatewayStatus,
+} from "./device/transport";
 
 const STATUS_TEXT = {
   [DeviceVisualState.BOOT_SELF_TEST]: "boot · self-test",
@@ -37,29 +25,50 @@ const STATUS_COLOR = {
   [DeviceVisualState.EMERGENCY]: "#c2343b",
 } as const;
 
+const PORTAL_HOME_URL = import.meta.env.DEV
+  ? "http://localhost:4000/"
+  : "/";
+
 export default function App(): JSX.Element {
   const controllerRef = useRef<DeviceController | null>(null);
+
   if (controllerRef.current === null) {
     controllerRef.current = new DeviceController();
   }
+
   const controller = controllerRef.current;
+
   const transportRef = useRef<SimulatedBleTransport | null>(null);
+
   if (transportRef.current === null) {
     transportRef.current = new SimulatedBleTransport();
   }
+
   const transport = transportRef.current;
 
-  const [snapshot, setSnapshot] = useState<DeviceSnapshot>(() => controller.snapshot());
-  const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus>(() => transport.currentStatus());
+  const [snapshot, setSnapshot] = useState<DeviceSnapshot>(() =>
+    controller.snapshot()
+  );
+
+  const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus>(() =>
+    transport.currentStatus()
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => controller.tick(), 16);
+
     const offSnapshot = controller.onSnapshot(setSnapshot);
     const offTransport = transport.onStatus(setGatewayStatus);
-    const transportHealthTimer = window.setInterval(() => void transport.refresh(), 5000);
+
+    const transportHealthTimer = window.setInterval(
+      () => void transport.refresh(),
+      5000
+    );
+
     const offEvents = controller.onEvent((event) => {
       void transport.sendEmergency(event);
     });
+
     return () => {
       window.clearInterval(timer);
       offSnapshot();
@@ -77,13 +86,34 @@ export default function App(): JSX.Element {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-         background: "#eeeae2",
+        background: "#eeeae2",
         color: "#1f2328",
         font: "13px/1.5 ui-sans-serif, system-ui, sans-serif",
         padding: "28px 16px",
       }}
     >
-      {/* one intentional group: wordmark → device → status → info */}
+      <a
+        href={PORTAL_HOME_URL}
+        aria-label="Back to NETRI home"
+        style={{
+          position: "fixed",
+          top: 20,
+          left: 24,
+          zIndex: 10,
+          padding: "8px 12px",
+          border: "1px solid #d4cfc4",
+          borderRadius: 6,
+          background: "#f7f5f1",
+          color: "#3a3f45",
+          fontSize: 12,
+          textDecoration: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        ← Back to Home
+      </a>
+
+      {/* One intentional group: wordmark → device → status → info */}
       <div
         style={{
           display: "flex",
@@ -103,7 +133,7 @@ export default function App(): JSX.Element {
           NETRI
         </div>
 
-        {/* the hardware — the primary visual, scaled ~1.5× */}
+        {/* The hardware: primary visual, scaled 1.5x */}
         <div style={{ margin: "2px 0" }}>
           <DeviceBoard
             snapshot={snapshot}
@@ -124,7 +154,10 @@ export default function App(): JSX.Element {
           {STATUS_TEXT[snapshot.visual].toUpperCase()}
         </div>
 
-           <DeviceInfo deviceId={snapshot.deviceId} gatewayStatus={gatewayStatus} />
+        <DeviceInfo
+          deviceId={snapshot.deviceId}
+          gatewayStatus={gatewayStatus}
+        />
       </div>
     </div>
   );

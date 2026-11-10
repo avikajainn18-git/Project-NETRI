@@ -10,8 +10,15 @@ import {
   UpdateResponderAvailabilityPayloadSchema,
 } from '@netri/contracts';
 import { NetriStore } from './store.js';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const port = Number(process.env.PORT ?? 4000);
+const repoRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+);  
 const store = new NetriStore();
 const app = express();
 const httpServer = createServer(app);
@@ -108,6 +115,18 @@ io.on('connection', (socket) => {
   socket.emit('responders.updated', store.listResponders());
   socket.emit('incidents.updated', store.listIncidents());
 });
+// Serve the unified NETRI portal and production-built frontends.
+const dashboardDist = resolve(repoRoot, 'dashboard', 'dist');
+const emergencyDist = resolve(repoRoot, 'emergency', 'dist');
+const simulatorDist = resolve(repoRoot, 'simulator', 'dist');
+const portalDist = resolve(repoRoot, 'portal');
+
+app.use('/dashboard', express.static(dashboardDist));
+app.use('/emergency', express.static(emergencyDist));
+app.use('/simulator', express.static(simulatorDist));
+
+// The portal serves the root page and its CSS.
+app.use(express.static(portalDist));
 
 setInterval(() => {
   for (const incident of store.escalateDueIncidents()) {
